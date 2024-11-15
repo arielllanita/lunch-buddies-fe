@@ -22,7 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${font.className} antialiased`}>
+      <body className={`${font.className} subpixel-antialiased`}>
         <AuthProvider>{children}</AuthProvider>
         <Toaster />
       </body>

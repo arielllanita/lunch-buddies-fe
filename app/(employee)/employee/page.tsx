@@ -10,7 +10,8 @@ export default async function Employee() {
 
   return (
     <div>
-      Employee Page <Link href={"/api/auth/signout?callbackUrl=/"}>Signout</Link>{" "}
+      {/* Employee Page <Link href={"/api/auth/signout?callbackUrl=/"}>Signout</Link>{" "} */}
+      <h1 className="text-5xl">hello world xxx</h1>
     </div>
   );
 }

@@ -47,8 +47,10 @@ export default function LoginForm() {
 
     if (response?.error) {
       toast.error("Invalid credentials!");
+      form.reset();
       return;
     }
+
     router.replace("/employee");
     toast.success("You are signed in!");
   }
@@ -98,9 +100,7 @@ export default function LoginForm() {
       </CardContent>
       <CardFooter className="justify-center space-x-2">
         <p className="text-opacity-15">Need help on your account?</p>
-        <Link href={"#"}>
-          Help?
-        </Link>
+        <Link href={"#"}>Help?</Link>
       </CardFooter>
     </Card>
   );
