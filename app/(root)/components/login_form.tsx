@@ -51,8 +51,8 @@ export default function LoginForm() {
       return;
     }
 
-    router.replace("/employee");
     toast.success("You are signed in!");
+    router.replace("/employee");
   }
 
   return (

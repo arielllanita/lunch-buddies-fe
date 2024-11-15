@@ -1,8 +1,7 @@
-import "./globals.css";
+import { Toaster } from "@/components/ui/sonner";
 import type { Metadata } from "next";
 import { IBM_Plex_Sans } from "next/font/google";
-import AuthProvider from "@/providers/auth_provider";
-import { Toaster } from "@/components/ui/sonner";
+import "./globals.css";
 
 const font = IBM_Plex_Sans({
   subsets: ["latin"],
@@ -23,7 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${font.className} subpixel-antialiased`}>
-        <AuthProvider>{children}</AuthProvider>
+        {children}
         <Toaster />
       </body>
     </html>
