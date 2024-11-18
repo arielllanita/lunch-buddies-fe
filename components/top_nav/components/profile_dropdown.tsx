@@ -7,17 +7,29 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown, ChevronUp, KeyRound, LogOut, ShoppingCart, UserCog } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  Home,
+  KeyRound,
+  LogOut,
+  ShoppingCart,
+  UserCog,
+} from "lucide-react";
 import { Session } from "next-auth";
 import { signOut } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function ProfileDropDown({ profile: { user } }: { profile: Session }) {
+  const router = useRouter();
+  const pathname = usePathname();
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const router = useRouter();
   const isAdmin = user.role === "Admin";
+  const isInAdminRoutes = pathname.startsWith("/admin");
+  const isShowAdminMenu = isAdmin && !isInAdminRoutes;
 
   const Arrow = () => {
     if (isDropdownOpen) return <ChevronUp className="text-primary" />;
@@ -26,8 +38,12 @@ export default function ProfileDropDown({ profile: { user } }: { profile: Sessio
 
   const adminHandler = () => router.replace("/admin/dashboard");
   const myOrdersHandler = () => {};
+  const hompageHandler = () => router.replace("/employee");
   const changePasswordHandler = () => {};
   const signOutHandler = () => signOut({ callbackUrl: "/" });
+
+  // change password api
+  // http://localhost:8000/user/d7d0e9b4-fc42-4385-a120-a45babdfd7a7
 
   return (
     <DropdownMenu onOpenChange={setIsDropdownOpen}>
@@ -40,16 +56,23 @@ export default function ProfileDropDown({ profile: { user } }: { profile: Sessio
         </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        {isAdmin && (
+        {isShowAdminMenu && (
           <DropdownMenuItem onSelect={adminHandler}>
             <UserCog />
             <span>Admin</span>
           </DropdownMenuItem>
         )}
-        <DropdownMenuItem onSelect={myOrdersHandler}>
-          <ShoppingCart />
-          <span>My Orders</span>
-        </DropdownMenuItem>
+        {isInAdminRoutes ? (
+          <DropdownMenuItem onSelect={hompageHandler}>
+            <Home />
+            <span>Homepage</span>
+          </DropdownMenuItem>
+        ) : (
+          <DropdownMenuItem onSelect={myOrdersHandler}>
+            <ShoppingCart />
+            <span>My Orders</span>
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem onSelect={changePasswordHandler}>
           <KeyRound />
           <span>Change Password</span>

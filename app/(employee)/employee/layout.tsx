@@ -1,3 +1,4 @@
+import Footer from "@/components/footer";
 import TopNav from "@/components/top_nav";
 
 export default function RootLayout({
@@ -9,6 +10,7 @@ export default function RootLayout({
     <div>
       <TopNav />
       {children}
+      <Footer className="fixed bottom-0 w-full" />
     </div>
   );
 }

@@ -71,7 +71,7 @@ export default function LoginForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Input placeholder="Email" {...field} />
+                      <Input type="email" placeholder="Email" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -100,7 +100,12 @@ export default function LoginForm() {
       </CardContent>
       <CardFooter className="justify-center space-x-2">
         <p className="text-opacity-15">Need help on your account?</p>
-        <Link href={"#"}>Help?</Link>
+        <Link
+          href={`https://discordapp.com/channels/@me/${process.env.NEXT_PUBLIC_IT_SUPPORT_DISCORD_ID}`}
+          target="_blank"
+        >
+          Help?
+        </Link>
       </CardFooter>
     </Card>
   );

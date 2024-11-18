@@ -6,12 +6,12 @@ import React from "react";
 export default async function Employee() {
   const session = await getServerSession(auth_options);
 
-  console.log("employee user", session);
-
   return (
-    <div>
-      {/* Employee Page <Link href={"/api/auth/signout?callbackUrl=/"}>Signout</Link>{" "} */}
-      <h1 className="text-5xl">hello world xxx</h1>
-    </div>
+    <main>
+      <div className="px-28 py-10">
+        <h1 className="text-4xl">Good morning, {session?.user.first_name}!</h1>
+        <p className="text-lg">What&apos;s your food mood today?</p>
+      </div>
+    </main>
   );
 }

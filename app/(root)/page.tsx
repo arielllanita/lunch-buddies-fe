@@ -1,5 +1,5 @@
 import Footer from "@/components/footer";
-import LoginForm from "./components/login_form";
+import LoginForm from "./_components/login_form";
 import Image from "next/image";
 import { getServerSession } from "next-auth";
 import { auth_options } from "@/lib/auth_options";
@@ -18,7 +18,7 @@ export default async function Home() {
         <Image src={"/images/logo-lunch-buddies.png"} width={440} height={40} alt="Logo" />
         <LoginForm />
       </div>
-      <Footer className="absolute bottom-0 w-full" />
+      <Footer className="fixed bottom-0 w-full" />
     </div>
   );
 }

@@ -9,7 +9,7 @@ export default async function TopNav() {
   const session = await getServerSession(auth_options);
 
   return (
-    <div className="bg-black px-4 pt-4 pb-3 flex justify-between">
+    <div className="bg-black px-6 pt-4 pb-3 flex justify-between">
       <Logo />
 
       <div className="flex gap-x-3">
