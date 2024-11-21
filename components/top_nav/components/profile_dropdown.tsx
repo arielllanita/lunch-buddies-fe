@@ -31,11 +31,6 @@ export default function ProfileDropDown({ profile: { user } }: { profile: Sessio
   const isInAdminRoutes = pathname.startsWith("/admin");
   const isShowAdminMenu = isAdmin && !isInAdminRoutes;
 
-  const Arrow = () => {
-    if (isDropdownOpen) return <ChevronUp className="text-primary" />;
-    return <ChevronDown className="text-primary" />;
-  };
-
   const adminHandler = () => router.replace("/admin/dashboard");
   const myOrdersHandler = () => {};
   const hompageHandler = () => router.replace("/employee");
@@ -52,7 +47,11 @@ export default function ProfileDropDown({ profile: { user } }: { profile: Sessio
           <span>
             {user.last_name}, {user.first_name}
           </span>
-          <Arrow />
+          {isDropdownOpen ? (
+            <ChevronUp className="text-primary" />
+          ) : (
+            <ChevronDown className="text-primary" />
+          )}
         </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent>

@@ -14,7 +14,6 @@ export const auth_options: NextAuthOptions = {
 
         const data = await userLogin(JSON.stringify(credentials));
 
-        // NOTE: We can improve the api to use the proper status codes
         if (!data.role) return null;
 
         const sessionUser = {

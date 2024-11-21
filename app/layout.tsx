@@ -21,7 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${font.className} subpixel-antialiased bg-gray-200`}>
+      <body className={`${font.className} subpixel-antialiased`}>
         {children}
         <Toaster />
       </body>

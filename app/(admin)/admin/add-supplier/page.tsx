@@ -3,6 +3,7 @@ import AddSupplier from "./_components/add_supplier";
 import ListSupplier from "./_components/list_supplier";
 
 export default async function Page() {
+  // TODO: Implement pagination
   const suppliers = await getSupplier();
   
   return (

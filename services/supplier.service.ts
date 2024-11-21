@@ -34,7 +34,7 @@ export async function editSupplier(body: ISupplier) {
     headers: { "Content-Type": "application/json" },
     cache: "no-store",
   });
-  return await res.json();
+  return res.status;
 }
 
 export async function removeSupplier(id: string) {
@@ -42,8 +42,5 @@ export async function removeSupplier(id: string) {
     method: "DELETE",
     cache: "no-store",
   });
-
-  console.log('SDFSDF', res);
-  
-  return res;
+  return res.status;
 }

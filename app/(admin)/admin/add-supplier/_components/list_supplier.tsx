@@ -23,11 +23,28 @@ import {
 import { ISupplier, removeSupplier } from "@/services/supplier.service";
 import { Check, Save, SquarePen, Trash, X } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 
 export default function ListSupplier({ suppliers }: { suppliers: ISupplier[] }) {
   const [table, setTable] = useState<{ isEditing: boolean; data?: ISupplier }>();
 
-  const editMode = () => setTable((v) => ({ data: undefined, isEditing: true }));
+  const updateSupplier = async (values: ISupplier) => {
+    if (!table?.isEditing) {
+      setTable(() => ({ data: values, isEditing: true }));
+    } else {
+      // const statusCode = await updateSupplier(table.data!);
+      console.log("data", table);
+    }
+  };
+
+  const changeHandler = (
+    key: "supplier_name" | "main_dish_free" | "side_dish_free",
+    value: string | boolean
+  ) => {
+    setTable((v) => ({ isEditing: true, data: { ...v!.data, [key]: value } as ISupplier }));
+  };
 
   const saveHandler = () => {};
 
@@ -48,16 +65,55 @@ export default function ListSupplier({ suppliers }: { suppliers: ISupplier[] }) 
             <TableBody>
               {suppliers.map((x) => (
                 <TableRow key={x.id}>
-                  <TableCell>{x.supplier_name}</TableCell>
-                  <TableCell>{x.main_dish_free ? <Check /> : <X />}</TableCell>
-                  <TableCell>{x.side_dish_free ? <Check /> : <X />}</TableCell>
+                  {table?.isEditing && table.data?.id == x.id ? (
+                    <>
+                      <TableCell>
+                        <Input
+                          defaultValue={x.supplier_name}
+                          onChange={(v) => changeHandler("supplier_name", v.target.value)}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Switch
+                          defaultChecked={x.main_dish_free}
+                          onCheckedChange={(checked) => changeHandler("main_dish_free", checked)}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Switch
+                          defaultChecked={x.side_dish_free}
+                          onCheckedChange={(checked) => changeHandler("side_dish_free", checked)}
+                        />
+                      </TableCell>
+                    </>
+                  ) : (
+                    <>
+                      <TableCell>{x.supplier_name}</TableCell>
+                      <TableCell>{x.main_dish_free ? <Check /> : <X />}</TableCell>
+                      <TableCell>{x.side_dish_free ? <Check /> : <X />}</TableCell>
+                    </>
+                  )}
                   <TableCell>
                     <div className="flex gap-4">
-                      <Button variant={"outline"} size={"icon"}>
-                        {table?.isEditing ? <Save /> : <SquarePen />}
+                      <Button variant={"outline"} size={"icon"} onClick={() => updateSupplier(x)}>
+                        {table?.isEditing && table.data?.id == x.id ? (
+                          <Save className="text-primary" />
+                        ) : (
+                          <SquarePen />
+                        )}
                       </Button>
 
-                      <DeleteSupplier supplier={x} />
+                      {table?.isEditing && table.data?.id == x.id ? (
+                        <Button
+                          variant={"outline"}
+                          size={"icon"}
+                          onClick={() => setTable({ data: undefined, isEditing: false })}
+                        >
+                          <X />
+                        </Button>
+                      ) : (
+                        <DeleteSupplierBtn supplier={x} />
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
@@ -70,10 +126,18 @@ export default function ListSupplier({ suppliers }: { suppliers: ISupplier[] }) 
   );
 }
 
-function DeleteSupplier({ supplier }: { supplier: ISupplier }) {
+function UpdateSupplierBtn({ supplier }: { supplier: ISupplier }) {}
+
+function DeleteSupplierBtn({ supplier }: { supplier: ISupplier }) {
+  const router = useRouter();
+
   const removeHandler = async () => {
-    const res = await removeSupplier(supplier.id!);
-    console.log("DELETE", res);
+    const statusCode = await removeSupplier(supplier.id!);
+
+    // Request has been successfully completed
+    if (statusCode === 204) {
+      router.refresh();
+    }
   };
 
   return (

@@ -1,12 +1,13 @@
-import { Archive, FileText, Home, Sandwich, ShoppingCart, User, Users } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
-  SidebarGroupContent,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { Archive, FileText, Home, Sandwich, ShoppingCart, User, Users } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 const items = [
@@ -49,13 +50,25 @@ const items = [
 
 export default function AdminSidebar() {
   return (
-    <Sidebar className="">
-      <SidebarContent>
+    <Sidebar>
+      <SidebarHeader className="bg-black">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton size={"lg"} asChild>
+              <Link href={"#"}>
+                <Image src={"/images/logo-lunch-buddies.png"} width={200} height={50} alt="Logo" />
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
+
+      <SidebarContent data-ariel="here">
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton asChild>
-                <Link href={item.url}>
+                <Link href={item.url} className="text-white p-7">
                   <item.icon />
                   <span>{item.title}</span>
                 </Link>
