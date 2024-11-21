@@ -33,7 +33,7 @@ const items = [
   },
   {
     title: "Weekly Report",
-    url: "/admin/week-report",
+    url: "/admin/weekly-report",
     icon: FileText,
   },
   {
