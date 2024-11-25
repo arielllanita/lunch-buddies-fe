@@ -18,6 +18,7 @@ import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import z from "zod";
 
 const formSchema = z.object({
@@ -45,11 +46,14 @@ export default function AddSupplier() {
 
     const res = await addSupplier(payload);
 
-    if (res?.id) {
-      form.reset();
-      setshowForm(false);
-      router.refresh();
+    if (!res?.id) {
+      throw new Error("Failed to add supplier");
     }
+
+    toast.success(`${payload.supplier_name} has been successfully added on your supplier list`);
+    form.reset();
+    setshowForm(false);
+    router.refresh();
   }
 
   return (

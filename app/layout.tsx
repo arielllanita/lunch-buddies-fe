@@ -23,7 +23,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${font.className} subpixel-antialiased`}>
         {children}
-        <Toaster />
+        <Toaster richColors />
       </body>
     </html>
   );

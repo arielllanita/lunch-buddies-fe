@@ -14,11 +14,11 @@ import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronRight } from "lucide-react";
 import { signIn } from "next-auth/react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
+import NeedHelp from "./need_help";
 
 const formSchema = z.object({
   email: z
@@ -100,12 +100,7 @@ export default function LoginForm() {
       </CardContent>
       <CardFooter className="justify-center space-x-2">
         <p className="text-opacity-15">Need help on your account?</p>
-        <Link
-          href={`https://discordapp.com/channels/@me/${process.env.NEXT_PUBLIC_IT_SUPPORT_DISCORD_ID}`}
-          target="_blank"
-        >
-          Help?
-        </Link>
+        <NeedHelp />
       </CardFooter>
     </Card>
   );

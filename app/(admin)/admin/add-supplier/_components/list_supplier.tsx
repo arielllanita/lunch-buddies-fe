@@ -26,6 +26,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { toast } from "sonner";
 
 export default function ListSupplier({ suppliers }: { suppliers: ISupplier[] }) {
   return (
@@ -73,7 +74,7 @@ function CustomRow({ rowData }: { rowData: ISupplier }) {
     value: string | boolean
   ) => setTable((v) => ({ isEditing: true, data: { ...v!.data, [key]: value } as ISupplier }));
 
-  const saveHandler = async () => {
+  const saveUpdate = async () => {
     if (!table?.data) {
       throw new Error("Invalid data");
     }
@@ -84,6 +85,7 @@ function CustomRow({ rowData }: { rowData: ISupplier }) {
       throw new Error("Server Error");
     }
 
+    toast.success(`${table.data.supplier_name} has been updated successfully!`);
     cancelEditMode();
     router.refresh();
   };
@@ -124,7 +126,7 @@ function CustomRow({ rowData }: { rowData: ISupplier }) {
             variant={"outline"}
             size={"icon"}
             onClick={() => {
-              isRowEditMode ? saveHandler() : editMode(rowData);
+              isRowEditMode ? saveUpdate() : editMode(rowData);
             }}
           >
             {isRowEditMode ? <Save className="text-primary" /> : <SquarePen />}
@@ -151,9 +153,10 @@ function DeleteSupplierBtn({ supplier }: { supplier: ISupplier }) {
 
     // Request has been successfully completed
     if (statusCode !== 204) {
-      throw Error("Failed to delete resource");
+      throw new Error("Failed to delete resource");
     }
 
+    toast.success(`${supplier.supplier_name} has been deleted`)
     router.refresh();
   };
 

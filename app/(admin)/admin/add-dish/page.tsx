@@ -1,7 +1,9 @@
-import React from 'react'
+import AddDish from "./_components/add_dish";
 
-export default function AddDish() {
+export default function Page() {
   return (
-    <div>AddDish</div>
-  )
+    <div className="flex flex-col gap-6 p-7">
+      <AddDish />
+    </div>
+  );
 }
