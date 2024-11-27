@@ -63,7 +63,7 @@ export default function AdminSidebar() {
         </SidebarMenu>
       </SidebarHeader>
 
-      <SidebarContent data-ariel="here">
+      <SidebarContent>
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>

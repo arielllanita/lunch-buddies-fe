@@ -6,17 +6,17 @@ import { forwardRef, useImperativeHandle, useState } from "react";
 import { useDropzone } from "react-dropzone";
 
 const ImgUpload = forwardRef((props, ref) => {
-  const [state, setState] = useState<"ERROR" | "GOOD">("GOOD");
+  const [state, setState] = useState<{ status: "ERROR" | "GOOD"; message?: string }>();
 
   const { getRootProps, getInputProps, acceptedFiles } = useDropzone({
     accept: { "image/*": [] },
     maxFiles: 1,
-    onDrop: () => setState("GOOD"),
+    onDrop: () => setState({ status: "GOOD" }),
   });
 
   useImperativeHandle(ref, () => ({
     imgFile: acceptedFiles[0],
-    error: () => setState("ERROR"),
+    error: (msg: string) => setState({ status: "ERROR", message: msg }),
   }));
 
   return (
@@ -25,26 +25,26 @@ const ImgUpload = forwardRef((props, ref) => {
       <div
         {...getRootProps()}
         className={cn(
-          state === "ERROR" ? "border-red-500" : "border-green-500",
+          state?.status === "ERROR" ? "border-red-500" : "border-green-500",
           "text-center border-dashed p-4 rounded border-2"
         )}
       >
         <input {...getInputProps()} />
         <span className="text-muted-foreground">Drag your file to start uploading</span>
-        
+
         <div className="flex items-center gap-3">
           <Separator className="flex-1" />
           <span className="text-muted-foreground">or</span>
           <Separator className="flex-1" />
         </div>
-        
+
         <Button variant={"outline"} type="button">
           Browse files
         </Button>
       </div>
 
-      {state === "ERROR" && (
-        <p className="text-sm font-medium text-destructive">Image is required</p>
+      {state?.status === "ERROR" && (
+        <p className="text-sm font-medium text-destructive">{state.message}</p>
       )}
 
       {/* Thumbnail */}
@@ -68,7 +68,7 @@ const ImgUpload = forwardRef((props, ref) => {
             <div>
               <span className="text-sm">{file.name}</span> <br />
               <span className="text-sm text-muted-foreground">
-                {(file.size / 1024 / 1024).toFixed(2)} MB
+                {(file.size / (1024 * 1024)).toFixed(2)} MB
               </span>
             </div>
           </div>

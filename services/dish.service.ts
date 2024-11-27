@@ -5,26 +5,59 @@ const API_URL = process.env.API_URL;
 export type IDish = {
   id?: string;
   dish_name: string;
-  dish_type: boolean;
-  supplier: boolean;
+  dish_type: string;
+  supplier: string;
+  img_url: File | string;
+  tags: string;
 };
 
-export async function addDish(body: IDish) {
+export type IDishType = {
+  id: string;
+  price: number;
+  is_active: boolean;
+  dish_id: {
+    id: string;
+    dish_name: string;
+    dish_type: string;
+    img_url: string;
+    supplier: {
+      supplier_name: string;
+      main_dish_free: boolean;
+      side_dish_free: boolean;
+      id: string;
+    };
+    created_at: string;
+  };
+  dish_name: null;
+  date: string;
+};
+
+export async function addDish(body: FormData) {
   const res = await fetch(`${API_URL}/dish/`, {
     method: "POST",
-    body: JSON.stringify(body),
-    headers: { "Content-Type": "application/json" },
+    body: body,
     cache: "no-store",
   });
+
   return await res.json();
 }
 
-export async function addDishPrice(body: { dish_id: string; is_active: boolean; price: number }) {
-  const res = await fetch(`${API_URL}/dish/`, {
+export async function addDishPrice(body: { dish_id: string; price: number }) {
+  const res = await fetch(`${API_URL}/dish_price/`, {
     method: "POST",
-    body: JSON.stringify({ ...body, id: null }),
+    body: JSON.stringify({ ...body, id: null, is_active: true }),
     headers: { "Content-Type": "application/json" },
     cache: "no-store",
   });
+
+  return res.status;
+}
+
+export async function getDishPrice(): Promise<IDishType[]> {
+  const res = await fetch(`${API_URL}/dish_price/`, {
+    method: "GET",
+    cache: "no-store",
+  });
+
   return await res.json();
 }

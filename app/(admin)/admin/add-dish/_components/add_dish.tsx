@@ -2,7 +2,14 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -11,6 +18,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { addDish, addDishPrice } from "@/services/dish.service";
+import { ISupplier } from "@/services/supplier.service";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -20,7 +29,6 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 import ImgUpload from "./img_upload";
-import { addDish } from "@/services/dish.service";
 
 const formSchema = z.object({
   dish_name: z.string().min(1, { message: "This is required" }),
@@ -30,9 +38,10 @@ const formSchema = z.object({
   tags: z.string().min(1, { message: "This is required" }),
 });
 
-export default function AddDish() {
+export default function AddDish({ suppliers }: { suppliers: ISupplier[] }) {
   const [showForm, setshowForm] = useState(false);
-  const imgUploadRef = useRef<{ imgFile: FileWithPath; error: () => void }>();
+
+  const imgUploadRef = useRef<{ imgFile: FileWithPath; error: (msg: string) => void }>();
 
   const router = useRouter();
 
@@ -43,25 +52,30 @@ export default function AddDish() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!imgUploadRef.current?.imgFile) {
-      imgUploadRef.current?.error();
+      imgUploadRef.current?.error("Image is required");
       return;
     }
 
-    const payload = {
-      ...values,
-      image: imgUploadRef.current.imgFile,
-    };
+    const dishFormData = new FormData();
+    dishFormData.append("file", imgUploadRef.current.imgFile);
+    dishFormData.append("dish_name", values.dish_name);
+    dishFormData.append("dish_type", values.dish_type);
+    dishFormData.append("supplier", values.supplier);
+    // TODO: ADD 'tags' to form data and change schema in backend
 
-    console.log("payload", payload);
+    const res = await addDish(dishFormData);
+    if (!res?.id) {
+      toast.error("Failed to add supplier");
+      return;
+    }
 
-    // TODO: FINALIZE API FOR SUBMISSION
-    // const res = await addDish(payload);
+    const code = await addDishPrice({ dish_id: res.id, price: values.price });
+    if (code !== 201) {
+      toast.error("Failed to add dish price");
+      return;
+    }
 
-    // if (!res?.id) {
-    //   throw new Error("Failed to add supplier");
-    // }
-
-    toast.success(`${payload.dish_name} has been successfully added on your dish list`);
+    toast.success(`${values.dish_name} has been successfully added on your dish list`);
     form.reset();
     setshowForm(false);
     router.refresh();
@@ -99,6 +113,7 @@ export default function AddDish() {
                         name="dish_name"
                         render={({ field }) => (
                           <FormItem className="flex-1">
+                            <FormLabel>Dish name</FormLabel>
                             <FormControl>
                               <Input type="text" placeholder="Dish name" {...field} />
                             </FormControl>
@@ -112,6 +127,7 @@ export default function AddDish() {
                         name="dish_type"
                         render={({ field }) => (
                           <FormItem className="flex-1">
+                            <FormLabel>Dish type</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                               <FormControl>
                                 <SelectTrigger>
@@ -119,9 +135,9 @@ export default function AddDish() {
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="m@example.com">m@example.com</SelectItem>
-                                <SelectItem value="m@google.com">m@google.com</SelectItem>
-                                <SelectItem value="m@support.com">m@support.com</SelectItem>
+                                <SelectItem value="Main Dish">Main Dish</SelectItem>
+                                <SelectItem value="Side Dish">Side Dish</SelectItem>
+                                <SelectItem value="Extra">Extra Order</SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -137,15 +153,18 @@ export default function AddDish() {
                         render={({ field }) => (
                           <FormItem className="flex-1">
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormLabel>Supplier</FormLabel>
                               <FormControl>
                                 <SelectTrigger>
                                   <SelectValue placeholder="Supplier" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="m@example.com">m@example.com</SelectItem>
-                                <SelectItem value="m@google.com">m@google.com</SelectItem>
-                                <SelectItem value="m@support.com">m@support.com</SelectItem>
+                                {suppliers.map((s) => (
+                                  <SelectItem key={s.id} value={s.id!}>
+                                    {s.supplier_name}
+                                  </SelectItem>
+                                ))}
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -158,6 +177,7 @@ export default function AddDish() {
                         name="price"
                         render={({ field }) => (
                           <FormItem className="flex-1">
+                            <FormLabel>Price</FormLabel>
                             <FormControl>
                               <Input type="number" placeholder="Price" {...field} />
                             </FormControl>
@@ -173,6 +193,7 @@ export default function AddDish() {
                         name="tags"
                         render={({ field }) => (
                           <FormItem className="flex-1">
+                            <FormLabel>Tags</FormLabel>
                             <FormControl>
                               <Input
                                 type="text"

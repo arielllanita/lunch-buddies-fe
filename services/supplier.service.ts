@@ -9,10 +9,10 @@ export type ISupplier = {
   side_dish_free: boolean;
 };
 
-export async function getSupplier(): Promise<ISupplier[]> {
+export async function getSupplier(revalidate?: number): Promise<ISupplier[]> {
   const res = await fetch(`${API_URL}/supplier/`, {
     method: "GET",
-    next: { revalidate: 0 },
+    next: { revalidate: revalidate ?? 0 },
   });
   return await res.json();
 }
