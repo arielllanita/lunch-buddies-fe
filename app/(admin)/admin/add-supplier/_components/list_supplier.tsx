@@ -27,8 +27,13 @@ import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import { usePaginator } from "@/hooks/use-paginator";
+import ClientPagination from "@/components/client_pagination";
 
 export default function ListSupplier({ suppliers }: { suppliers: ISupplier[] }) {
+  const itemsPerPage = 10;
+  const clientPaginator = usePaginator(suppliers, itemsPerPage);
+
   return (
     <div>
       <Card>
@@ -44,11 +49,17 @@ export default function ListSupplier({ suppliers }: { suppliers: ISupplier[] }) 
               </TableRow>
             </TableHeader>
             <TableBody>
-              {suppliers.map((supplier) => (
+              {clientPaginator.itemsOnPage.map((supplier) => (
                 <CustomRow key={supplier.id} rowData={supplier} />
               ))}
             </TableBody>
           </Table>
+
+          <ClientPagination
+            {...clientPaginator}
+            arrayLength={suppliers.length}
+            itemsPerPage={itemsPerPage}
+          />
         </CardContent>
       </Card>
     </div>
@@ -156,7 +167,7 @@ function DeleteSupplierBtn({ supplier }: { supplier: ISupplier }) {
       throw new Error("Failed to delete resource");
     }
 
-    toast.success(`${supplier.supplier_name} has been deleted`)
+    toast.success(`${supplier.supplier_name} has been deleted`);
     router.refresh();
   };
 

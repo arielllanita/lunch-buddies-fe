@@ -1,5 +1,6 @@
 "use client";
 
+import ClientPagination from "@/components/client_pagination";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -13,6 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Pagination, PaginationContent, PaginationItem } from "@/components/ui/pagination";
 import {
   Table,
   TableBody,
@@ -21,21 +23,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+import { usePaginator } from "@/hooks/use-paginator";
 import { IDishType, deleteDish, editDishPrice, getDishPriceById } from "@/services/dish.service";
 import { ChevronLeft, ChevronRight, Save, SquarePen, Trash, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import { usePaginator } from "@/hooks/use-paginator";
 
 export interface DishList {
   id: string;
@@ -63,12 +56,8 @@ export interface Supplier {
 }
 
 export default function DishList({ dishes }: { dishes: IDishType[] }) {
-  const ITEMS_PER_PAGE = 10;
-
-  const { currentPage, itemsOnPage, nextPage, previousPage, getPageStatus } = usePaginator(
-    dishes,
-    ITEMS_PER_PAGE
-  );
+  const itemsPerPage = 10;
+  const clientPaginator = usePaginator(dishes, itemsPerPage);
 
   return (
     <Card>
@@ -86,41 +75,17 @@ export default function DishList({ dishes }: { dishes: IDishType[] }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {itemsOnPage.map((dish) => (
+            {clientPaginator.itemsOnPage.map((dish) => (
               <CustomRow key={dish.id} dish={dish} />
             ))}
           </TableBody>
         </Table>
 
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <Button
-                onClick={previousPage}
-                variant={"ghost"}
-                size={"icon"}
-                disabled={currentPage === 1}
-              >
-                <ChevronLeft />
-              </Button>
-            </PaginationItem>
-
-            <PaginationItem>
-              <span className="text-sm">{getPageStatus()}</span>
-            </PaginationItem>
-
-            <PaginationItem>
-              <Button
-                onClick={nextPage}
-                variant={"ghost"}
-                size={"icon"}
-                disabled={currentPage === Math.ceil(dishes.length / ITEMS_PER_PAGE)}
-              >
-                <ChevronRight />
-              </Button>
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
+        <ClientPagination
+          {...clientPaginator}
+          arrayLength={dishes.length}
+          itemsPerPage={itemsPerPage}
+        />
       </CardContent>
     </Card>
   );

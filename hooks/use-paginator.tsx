@@ -8,7 +8,7 @@ interface UsePaginatorResult<T> {
   getPageStatus: () => string;
 }
 
-export function usePaginator<T>(array: T[], itemsPerPage: number): UsePaginatorResult<T> {
+export function usePaginator<T>(array: T[], itemsPerPage: number = 10): UsePaginatorResult<T> {
   const [currentPage, setCurrentPage] = useState(1);
 
   const totalPages = useMemo(
