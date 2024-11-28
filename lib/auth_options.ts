@@ -12,7 +12,12 @@ export const auth_options: NextAuthOptions = {
       async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        const data = await userLogin(JSON.stringify(credentials));
+        const data = await userLogin(
+          JSON.stringify({
+            email: credentials.email,
+            password: credentials.password,
+          })
+        );
 
         if (!data.role) return null;
 
