@@ -3,9 +3,14 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { forwardRef, useImperativeHandle, useState } from "react";
-import { useDropzone } from "react-dropzone";
+import { FileWithPath, useDropzone } from "react-dropzone";
 
-const ImgUpload = forwardRef((props, ref) => {
+export type ImgUploadRef = {
+  imgFile: FileWithPath;
+  error: (msg: string) => void;
+};
+
+const ImgUpload = forwardRef<ImgUploadRef, {}>((props, ref) => {
   const [state, setState] = useState<{ status: "ERROR" | "GOOD"; message?: string }>();
 
   const { getRootProps, getInputProps, acceptedFiles } = useDropzone({

@@ -28,7 +28,7 @@ import { FileWithPath } from "react-dropzone";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
-import ImgUpload from "./img_upload";
+import ImgUpload, { ImgUploadRef } from "./img_upload";
 
 const formSchema = z.object({
   dish_name: z.string().min(1, { message: "This is required" }),
@@ -41,7 +41,7 @@ const formSchema = z.object({
 export default function AddDish({ suppliers }: { suppliers: ISupplier[] }) {
   const [showForm, setshowForm] = useState(false);
 
-  const imgUploadRef = useRef<{ imgFile: FileWithPath; error: (msg: string) => void }>();
+  const imgUploadRef = useRef<ImgUploadRef>(null);
 
   const router = useRouter();
 

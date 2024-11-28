@@ -8,6 +8,9 @@ interface UsePaginatorResult<T> {
   getPageStatus: () => string;
 }
 
+/**
+ * For client side pagination
+ */
 export function usePaginator<T>(array: T[], itemsPerPage: number = 10): UsePaginatorResult<T> {
   const [currentPage, setCurrentPage] = useState(1);
 
