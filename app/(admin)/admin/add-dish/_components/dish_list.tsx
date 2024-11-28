@@ -3,14 +3,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
   Dialog,
   DialogClose,
   DialogContent,
@@ -20,14 +12,30 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { ISupplier, editSupplier, removeSupplier } from "@/services/supplier.service";
-import { Check, Save, SquarePen, Trash, X } from "lucide-react";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { IDishType, deleteDish, editDishPrice, getDishPriceById } from "@/services/dish.service";
+import { ChevronLeft, ChevronRight, Save, SquarePen, Trash, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { toast } from "sonner";
-import { IDishType } from "@/services/dish.service";
+import { usePaginator } from "@/hooks/use-paginator";
 
 export interface DishList {
   id: string;
@@ -53,8 +61,15 @@ export interface Supplier {
   side_dish_free: boolean;
   id: string;
 }
-//  2:20
+
 export default function DishList({ dishes }: { dishes: IDishType[] }) {
+  const ITEMS_PER_PAGE = 10;
+
+  const { currentPage, itemsOnPage, nextPage, previousPage, getPageStatus } = usePaginator(
+    dishes,
+    ITEMS_PER_PAGE
+  );
+
   return (
     <Card>
       <CardContent className="p-4">
@@ -71,150 +86,177 @@ export default function DishList({ dishes }: { dishes: IDishType[] }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {dishes.map((dishes) => (
-              <TableRow key={dishes.id}>
-                <TableCell>{dishes.dish_id.dish_name}</TableCell>
-                <TableCell>{dishes.dish_id.dish_type}</TableCell>
-                <TableCell>{dishes.dish_id.supplier.supplier_name}</TableCell>
-                <TableCell>&#x20B1;{dishes.price.toFixed(2)}</TableCell>
-                <TableCell>{dishes.dish_id.created_at.split("T")[0]}</TableCell>
-                <TableCell>
-                  <div className="flex justify-end gap-3">
-                    <Button variant={"outline"} size={"icon"} onClick={() => {}}>
-                      <SquarePen />
-                    </Button>
-
-                    <Button variant={"outline"} size={"icon"} onClick={() => {}}>
-                      <Trash className="text-destructive" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
+            {itemsOnPage.map((dish) => (
+              <CustomRow key={dish.id} dish={dish} />
             ))}
           </TableBody>
         </Table>
+
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <Button
+                onClick={previousPage}
+                variant={"ghost"}
+                size={"icon"}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft />
+              </Button>
+            </PaginationItem>
+
+            <PaginationItem>
+              <span className="text-sm">{getPageStatus()}</span>
+            </PaginationItem>
+
+            <PaginationItem>
+              <Button
+                onClick={nextPage}
+                variant={"ghost"}
+                size={"icon"}
+                disabled={currentPage === Math.ceil(dishes.length / ITEMS_PER_PAGE)}
+              >
+                <ChevronRight />
+              </Button>
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
       </CardContent>
     </Card>
   );
 }
 
-function CustomRow({ rowData }: { rowData: ISupplier }) {
-  const [table, setTable] = useState<{ isEditing: boolean; data?: ISupplier }>();
+function CustomRow({ dish }: { dish: IDishType }) {
+  const [rowState, setRowState] = useState<{ isEditing: boolean }>();
 
-  const router = useRouter();
-  const isRowEditMode = table?.isEditing && table.data?.id == rowData.id;
-
-  const editMode = async (values: ISupplier) => {
-    setTable(() => ({ data: values, isEditing: true }));
-  };
-
-  const cancelEditMode = () => {
-    setTable({ data: undefined, isEditing: false });
-  };
-
-  const changeHandler = (
-    key: "supplier_name" | "main_dish_free" | "side_dish_free",
-    value: string | boolean
-  ) => setTable((v) => ({ isEditing: true, data: { ...v!.data, [key]: value } as ISupplier }));
-
-  const saveUpdate = async () => {
-    if (!table?.data) {
-      throw new Error("Invalid data");
-    }
-
-    const status = await editSupplier(table.data);
-
-    if (status !== 200) {
-      throw new Error("Server Error");
-    }
-
-    toast.success(`${table.data.supplier_name} has been updated successfully!`);
-    cancelEditMode();
-    router.refresh();
-  };
+  if (rowState?.isEditing) {
+    return <EditingRow rowData={dish} cancelEditing={() => setRowState({ isEditing: false })} />;
+  }
 
   return (
     <TableRow>
-      {isRowEditMode ? (
-        <>
-          <TableCell>
-            <Input
-              defaultValue={rowData.supplier_name}
-              onChange={(v) => changeHandler("supplier_name", v.target.value)}
-            />
-          </TableCell>
-          <TableCell>
-            <Switch
-              defaultChecked={rowData.main_dish_free}
-              onCheckedChange={(checked) => changeHandler("main_dish_free", checked)}
-            />
-          </TableCell>
-          <TableCell>
-            <Switch
-              defaultChecked={rowData.side_dish_free}
-              onCheckedChange={(checked) => changeHandler("side_dish_free", checked)}
-            />
-          </TableCell>
-        </>
-      ) : (
-        <>
-          <TableCell>{rowData.supplier_name}</TableCell>
-          <TableCell>{rowData.main_dish_free ? <Check /> : <X />}</TableCell>
-          <TableCell>{rowData.side_dish_free ? <Check /> : <X />}</TableCell>
-        </>
-      )}
+      <TableCell>{dish.dish_id.dish_name}</TableCell>
+      <TableCell>{dish.dish_id.dish_type}</TableCell>
+      <TableCell>{dish.dish_id.supplier.supplier_name}</TableCell>
+      <TableCell>&#x20B1;{dish.price.toFixed(2)}</TableCell>
+      <TableCell>{dish.dish_id.created_at.split("T")[0]}</TableCell>
       <TableCell>
-        <div className="flex gap-4">
+        <div className="flex justify-end gap-3">
           <Button
             variant={"outline"}
             size={"icon"}
-            onClick={() => {
-              isRowEditMode ? saveUpdate() : editMode(rowData);
-            }}
+            onClick={() => setRowState({ isEditing: true })}
           >
-            {isRowEditMode ? <Save className="text-primary" /> : <SquarePen />}
+            <SquarePen />
           </Button>
 
-          {isRowEditMode ? (
-            <Button variant={"outline"} size={"icon"} onClick={cancelEditMode}>
-              <X />
-            </Button>
-          ) : (
-            <DeleteSupplierBtn supplier={rowData} />
-          )}
+          <DeleteDishBtn dish={dish} />
         </div>
       </TableCell>
     </TableRow>
   );
 }
 
-function DeleteSupplierBtn({ supplier }: { supplier: ISupplier }) {
+function EditingRow({ rowData, cancelEditing }: { rowData: IDishType; cancelEditing: () => void }) {
+  const router = useRouter();
+
+  const [updatedData, setUpdatedData] = useState({
+    dish_name: rowData.dish_id.dish_name,
+    price: rowData.price,
+  });
+
+  const changeHandler = (key: "dish_name" | "price", value: string) => {
+    setUpdatedData({ ...updatedData, [key]: value });
+  };
+
+  const saveHandler = async () => {
+    const payload = JSON.stringify({
+      id: null,
+      is_active: true,
+      dish_id: rowData.dish_id.id,
+      ...updatedData,
+    });
+
+    const code = await editDishPrice(rowData.id, payload);
+    if (code !== 200) {
+      toast.error(`Failed to update ${rowData.dish_id.dish_name}`);
+      return;
+    }
+
+    toast.success(`${rowData.dish_id.dish_name} has been updated successfully!`);
+    cancelEditing();
+    router.refresh();
+  };
+
+  return (
+    <TableRow>
+      <TableCell>
+        <Input
+          type="text"
+          value={updatedData.dish_name}
+          onChange={(e) => changeHandler("dish_name", e.target.value)}
+          required
+        />
+      </TableCell>
+      <TableCell>{rowData.dish_id.dish_type}</TableCell>
+      <TableCell>{rowData.dish_id.supplier.supplier_name}</TableCell>
+      <TableCell>
+        <Input
+          type="number"
+          value={updatedData.price}
+          onChange={(e) => changeHandler("price", e.target.value)}
+          required
+        />
+      </TableCell>
+      <TableCell>{rowData.dish_id.created_at.split("T")[0]}</TableCell>
+
+      <TableCell>
+        <div className="flex justify-end gap-3">
+          <Button variant={"outline"} size={"icon"} onClick={saveHandler}>
+            <Save className="text-primary" />
+          </Button>
+
+          <Button variant={"outline"} size={"icon"} onClick={cancelEditing}>
+            <X />
+          </Button>
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+}
+
+function DeleteDishBtn({ dish }: { dish: IDishType }) {
   const router = useRouter();
 
   const removeHandler = async () => {
-    const statusCode = await removeSupplier(supplier.id!);
-
-    // Request has been successfully completed
-    if (statusCode !== 204) {
-      throw new Error("Failed to delete resource");
+    const res = await getDishPriceById(dish.id);
+    if (!res?.dish_id?.id) {
+      toast.error("Failed to delete resource1");
+      return;
     }
 
-    toast.success(`${supplier.supplier_name} has been deleted`);
+    const statusCode = await deleteDish(res.dish_id.id);
+    if (statusCode !== 204) {
+      toast.error("Failed to delete resource");
+      return;
+    }
+
+    toast.success(`${dish.dish_id.dish_name} has been deleted`);
     router.refresh();
   };
 
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size={"icon"}>
-          <Trash className="text-red-500" />
+        <Button variant={"outline"} size={"icon"}>
+          <Trash className="text-destructive" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Are you sure want to delete {supplier.supplier_name}?</DialogTitle>
+          <DialogTitle>Are you sure want to delete {dish.dish_id.dish_name}?</DialogTitle>
           <DialogDescription>
-            This supplier will be deleted immediately. You can&apos;t undo this action.
+            This dish will be deleted immediately. You can&apos;t undo this action.
           </DialogDescription>
         </DialogHeader>
 

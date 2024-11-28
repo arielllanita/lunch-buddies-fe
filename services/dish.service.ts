@@ -61,3 +61,32 @@ export async function getDishPrice(): Promise<IDishType[]> {
 
   return await res.json();
 }
+
+export async function editDishPrice(id: string, body: string) {
+  const res = await fetch(`${API_URL}/dish_price/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body,
+    cache: "no-store",
+  });
+
+  return res.status;
+}
+
+export async function getDishPriceById(dishId: string) {
+  const res = await fetch(`${API_URL}/dish_price/${dishId}/`, {
+    method: "GET",
+    cache: "no-store",
+  });
+
+  return await res.json();
+}
+
+export async function deleteDish(dishId: string) {
+  const res = await fetch(`${API_URL}/dish/${dishId}/`, {
+    method: "DELETE",
+    cache: "no-store",
+  });
+
+  return res.status;
+}
