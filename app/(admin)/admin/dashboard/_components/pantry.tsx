@@ -14,21 +14,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { IDishType } from "@/services/dish.service";
 import { Clock10, Minus, Plus } from "lucide-react";
-import { forwardRef, useImperativeHandle, useState } from "react";
+import { Dispatch, useState } from "react";
+import { IDashboardAction, IDashboardState } from "../page";
 
-export type PantryRef = {
-  addDish: (dish: IDishType) => void;
+export type PantryProps = {
+  state: IDashboardState;
+  dispatch: Dispatch<IDashboardAction>;
 };
 
-const Pantry = forwardRef<PantryRef, {}>((props, ref) => {
+export default function Pantry({ state, dispatch }: PantryProps) {
   const [date, setDate] = useState<Date>();
-  const [dishes, setDishes] = useState<IDishType[]>([]);
 
-  useImperativeHandle(ref, () => ({
-    addDish: (dish) => setDishes((v) => v.concat(dish)),
-  }));
+  function submitPantry() {
+    console.log("submit_pantry", state.pantry);
+  }
 
   return (
     <Card>
@@ -37,8 +37,15 @@ const Pantry = forwardRef<PantryRef, {}>((props, ref) => {
           <h1 className="text-3xl">Pantry</h1>
 
           <div className="flex gap-2">
-            <Button variant={"outline"}>Clear</Button>
-            <Button>
+            <Button
+              variant={"outline"}
+              onClick={() => {
+                dispatch({ type: "CLEAR_PANTRY" });
+              }}
+            >
+              Clear
+            </Button>
+            <Button onClick={submitPantry}>
               Add to Pantry <Plus />
             </Button>
           </div>
@@ -69,7 +76,7 @@ const Pantry = forwardRef<PantryRef, {}>((props, ref) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {dishes?.map((d) => (
+              {state.pantry.map((d) => (
                 <TableRow key={d.id}>
                   <TableCell className="w-[20%]">{d.dish_id.dish_type}</TableCell>
                   <TableCell>{d.dish_id.dish_name}</TableCell>
@@ -77,7 +84,11 @@ const Pantry = forwardRef<PantryRef, {}>((props, ref) => {
                     <Input type="number" defaultValue={10} min={1} />
                   </TableCell>
                   <TableCell>
-                    <Button size={"icon"} variant={"ghost"}>
+                    <Button
+                      size={"icon"}
+                      variant={"ghost"}
+                      onClick={() => dispatch({ type: "REMOVE_FROM_PANTRY", payload: d.id })}
+                    >
                       <Minus className="text-destructive" />
                     </Button>
                   </TableCell>
@@ -89,8 +100,4 @@ const Pantry = forwardRef<PantryRef, {}>((props, ref) => {
       </CardContent>
     </Card>
   );
-});
-
-Pantry.displayName = "Pantry";
-
-export default Pantry;
+}

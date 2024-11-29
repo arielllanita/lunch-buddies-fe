@@ -19,27 +19,27 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { IDishType, getDishPrice } from "@/services/dish.service";
-import { ISupplier, getSupplier } from "@/services/supplier.service";
+import { getDishPrice } from "@/services/dish.service";
+import { getSupplier } from "@/services/supplier.service";
 import { Plus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ChangeEvent, Dispatch, useEffect } from "react";
+import { IDashboardAction, IDashboardState } from "../page";
+import { debounce } from "lodash";
 
 export type SupplierProps = {
-  addDish: (dish: IDishType) => void;
+  state: IDashboardState;
+  dispatch: Dispatch<IDashboardAction>;
 };
 
-export default function Suppliers({ addDish }: SupplierProps) {
-  const [suppliers, setSuppliers] = useState<ISupplier[]>();
-  const [dishes, setDishes] = useState<IDishType[]>();
-
+export default function Suppliers({ dispatch, state }: SupplierProps) {
   useEffect(() => {
     (async () => {
       const promises = await Promise.all([getSupplier(60 * 2), getDishPrice()]);
 
-      setSuppliers(promises[0]);
-      setDishes(promises[1]);
+      dispatch({ type: "ADD_SUPPLIER", payload: promises[0] });
+      dispatch({ type: "ADD_DISH", payload: promises[1] });
     })();
-  }, []);
+  }, [dispatch, state.triggerFetch]);
 
   return (
     <Card>
@@ -47,13 +47,19 @@ export default function Suppliers({ addDish }: SupplierProps) {
         <h1 className="text-3xl">Suppliers</h1>
 
         <div className="grid grid-cols-2 gap-3">
-          {/* TODO: ADD FILTER ACTIONS */}
-          <Select onValueChange={(value) => console.log(value)}>
+          <Select
+            onValueChange={(value) => {
+              if (state.dishes.length) {
+                
+              }
+              dispatch({ type: "FILTER_DISH_BY_SUPPLIER", payload: value });
+            }}
+          >
             <SelectTrigger>
               <SelectValue placeholder="Supplier name" />
             </SelectTrigger>
             <SelectContent>
-              {suppliers?.map((s) => (
+              {state.suppliers.map((s) => (
                 <SelectItem key={s.id} value={s.id!}>
                   {s.supplier_name}
                 </SelectItem>
@@ -61,7 +67,17 @@ export default function Suppliers({ addDish }: SupplierProps) {
             </SelectContent>
           </Select>
 
-          <Input placeholder="Search" />
+          <Input
+            placeholder="Search"
+            onChange={debounce(function (e: ChangeEvent<HTMLInputElement>) {
+              const value = e.target.value.trim();
+              if (value === "") {
+                dispatch({ type: "REFETCH_DISHES_SUPPLIERS" });
+              } else {
+                dispatch({ type: "FILTER_DISH_BY_NAME", payload: value });
+              }
+            }, 2000)}
+          />
         </div>
 
         <ScrollArea className="h-[30rem]">
@@ -74,7 +90,7 @@ export default function Suppliers({ addDish }: SupplierProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {dishes?.map((d) => (
+              {state.dishes.map((d) => (
                 <TableRow key={d.id}>
                   <TableCell>{d.dish_id.dish_type}</TableCell>
                   <TableCell>{d.dish_id.dish_name}</TableCell>
@@ -83,7 +99,7 @@ export default function Suppliers({ addDish }: SupplierProps) {
                       size={"icon"}
                       variant={"ghost"}
                       onClick={() => {
-                        addDish(d);
+                        dispatch({ type: "ADD_TO_PANTRY", payload: d });
                       }}
                     >
                       <Plus className="text-primary" />
