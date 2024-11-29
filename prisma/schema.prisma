@@ -1,0 +1,92 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum DishType {
+  MAIN
+  SIDE
+  EXTRA
+}
+
+model User {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String   @unique
+  firstName String
+  lastName  String
+  password  String
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  order     Order[]
+
+  @@map("users")
+}
+
+model Supplier {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  isFreeMainDish Boolean
+  isFreeSideDish Boolean
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  dish           Dish[]
+
+  @@map("suppliers")
+}
+
+model Dish {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  name       String
+  type       DishType
+  price      Float
+  isActive   Boolean  @default(true)
+  tags       String
+  supplier   Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  supplierId String   @db.ObjectId
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  menu       Menu[]
+
+  @@map("dishes")
+}
+
+model Menu {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  date      DateTime
+  quantity  Int
+  dish      Dish     @relation(fields: [dishId], references: [id], onDelete: Cascade)
+  dishId    String   @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  order     Order[]
+
+  @@index([date])
+  @@map("menus")
+}
+
+model Order {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  quantity  Int
+  total     Float
+  createdAt DateTime @default(now())
+  menu      Menu     @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  menuId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String   @db.ObjectId
+
+  @@index([createdAt])
+  @@map("orders")
+}
