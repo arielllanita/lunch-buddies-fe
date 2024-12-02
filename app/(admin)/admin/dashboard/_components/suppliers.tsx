@@ -19,12 +19,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getDishPrice } from "@/services/dish.service";
+import { IDishType, getDishPrice } from "@/services/dish.service";
 import { getSupplier } from "@/services/supplier.service";
-import { Plus } from "lucide-react";
-import { ChangeEvent, Dispatch, useEffect } from "react";
-import { IDashboardAction, IDashboardState } from "../page";
 import { debounce } from "lodash";
+import { Plus } from "lucide-react";
+import { ChangeEvent, Dispatch, useEffect, useState } from "react";
+import { IDashboardAction, IDashboardState } from "../page";
+import { getDishBySupplier } from "@/services/dish_menu.service";
 
 export type SupplierProps = {
   state: IDashboardState;
@@ -32,14 +33,26 @@ export type SupplierProps = {
 };
 
 export default function Suppliers({ dispatch, state }: SupplierProps) {
+  const [selectedSupplier, setSelectedSupplier] = useState("");
+  const [dishes, setDishes] = useState<IDishType[]>([]);
+
+  // Fetch suppliers
   useEffect(() => {
     (async () => {
-      const promises = await Promise.all([getSupplier(60 * 2), getDishPrice()]);
-
-      dispatch({ type: "ADD_SUPPLIER", payload: promises[0] });
-      dispatch({ type: "ADD_DISH", payload: promises[1] });
+      const suppliers = await getSupplier();
+      dispatch({ type: "ADD_SUPPLIER", payload: suppliers });
     })();
-  }, [dispatch, state.triggerFetch]);
+  }, [dispatch]);
+
+  // Fetch dish by supplier
+  useEffect(() => {
+    (async () => {
+      if (!selectedSupplier) return;
+
+      const dishes = await getDishBySupplier(selectedSupplier);
+      dispatch({ type: "ADD_DISH", payload: dishes });
+    })();
+  }, [selectedSupplier, dispatch]);
 
   return (
     <Card>
@@ -48,11 +61,10 @@ export default function Suppliers({ dispatch, state }: SupplierProps) {
 
         <div className="grid grid-cols-2 gap-3">
           <Select
-            onValueChange={(value) => {
-              if (state.dishes.length) {
-                
-              }
-              dispatch({ type: "FILTER_DISH_BY_SUPPLIER", payload: value });
+            value={selectedSupplier}
+            onValueChange={(id) => {
+              dispatch({ type: "CLEAR_PANTRY" });
+              setSelectedSupplier(id);
             }}
           >
             <SelectTrigger>
@@ -94,7 +106,7 @@ export default function Suppliers({ dispatch, state }: SupplierProps) {
                 <TableRow key={d.id}>
                   <TableCell>{d.dish_id.dish_type}</TableCell>
                   <TableCell>{d.dish_id.dish_name}</TableCell>
-                  <TableCell>
+                  <TableCell className="w-[10%]">
                     <Button
                       size={"icon"}
                       variant={"ghost"}

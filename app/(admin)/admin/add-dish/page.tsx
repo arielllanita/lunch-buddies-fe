@@ -4,7 +4,7 @@ import DishList from "./_components/dish_list";
 import { getDishPrice } from "@/services/dish.service";
 
 export default async function Page() {
-  const suppliers = await getSupplier(60);
+  const suppliers = await getSupplier();
   const dishes = await getDishPrice();
 
   return (

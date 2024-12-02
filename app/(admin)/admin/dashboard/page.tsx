@@ -21,7 +21,7 @@ export type IDashboardAction = {
     | "REMOVE_FROM_PANTRY"
     | "CLEAR_PANTRY"
     | "ADD_SUPPLIER"
-    | "FILTER_DISH_BY_SUPPLIER"
+    // | "FILTER_DISH_BY_SUPPLIER"
     | "FILTER_DISH_BY_NAME"
     | "REFETCH_DISHES_SUPPLIERS";
   payload?: any;
@@ -32,8 +32,8 @@ const initState: IDashboardState = { dishes: [], suppliers: [], pantry: [], trig
 function reducer(state: IDashboardState, action: IDashboardAction) {
   switch (action.type) {
     case "ADD_DISH": {
-      const dishes = uniqBy(state.dishes.concat(action.payload), "id");
-      return { ...state, dishes };
+      // const dishes = uniqBy(state.dishes.concat(action.payload), "id");
+      return { ...state, dishes: action.payload };
     }
     case "ADD_SUPPLIER": {
       const suppliers = uniqBy(state.suppliers.concat(action.payload), "id");
@@ -50,10 +50,10 @@ function reducer(state: IDashboardState, action: IDashboardAction) {
     case "CLEAR_PANTRY": {
       return { ...state, pantry: [] };
     }
-    case "FILTER_DISH_BY_SUPPLIER": {
-      const dishes = state.dishes.filter((d) => d.dish_id.supplier.id === action.payload);
-      return { ...state, dishes };
-    }
+    // case "FILTER_DISH_BY_SUPPLIER": {
+    //   const dishes = state.dishes.filter((d) => d.dish_id.supplier.id === action.payload);
+    //   return { ...state, dishes };
+    // }
     case "FILTER_DISH_BY_NAME": {
       const dishes = state.dishes.filter((d) =>
         d.dish_id.dish_name.toLowerCase().includes(action.payload.toLowerCase())
@@ -70,7 +70,7 @@ function reducer(state: IDashboardState, action: IDashboardAction) {
 }
 
 /**
- * - filter dishes by supplier
+ * - filter dishes by supplier (check)
  * - shape pantry as payload for submission
  * - submit pantry to api
  */

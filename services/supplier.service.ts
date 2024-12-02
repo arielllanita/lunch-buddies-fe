@@ -1,5 +1,7 @@
 "use server";
 
+import { revalidateTag } from "next/cache";
+
 const API_URL = process.env.API_URL;
 
 export type ISupplier = {
@@ -9,10 +11,10 @@ export type ISupplier = {
   side_dish_free: boolean;
 };
 
-export async function getSupplier(revalidate?: number): Promise<ISupplier[]> {
+export async function getSupplier(): Promise<ISupplier[]> {
   const res = await fetch(`${API_URL}/supplier/`, {
     method: "GET",
-    next: { revalidate: revalidate ?? 0 },
+    next: { revalidate: 600, tags: ["supplier"] },
   });
   return await res.json();
 }
@@ -24,6 +26,9 @@ export async function addSupplier(body: ISupplier) {
     headers: { "Content-Type": "application/json" },
     cache: "no-store",
   });
+
+  revalidateTag("supplier");
+
   return await res.json();
 }
 

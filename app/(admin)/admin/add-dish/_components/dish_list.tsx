@@ -14,7 +14,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Pagination, PaginationContent, PaginationItem } from "@/components/ui/pagination";
 import {
   Table,
   TableBody,
@@ -25,7 +24,7 @@ import {
 } from "@/components/ui/table";
 import { usePaginator } from "@/hooks/use-paginator";
 import { IDishType, deleteDish, editDishPrice, getDishPriceById } from "@/services/dish.service";
-import { ChevronLeft, ChevronRight, Save, SquarePen, Trash, X } from "lucide-react";
+import { Save, SquarePen, Trash, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";

@@ -80,10 +80,10 @@ export default function Pantry({ state, dispatch }: PantryProps) {
                 <TableRow key={d.id}>
                   <TableCell className="w-[20%]">{d.dish_id.dish_type}</TableCell>
                   <TableCell>{d.dish_id.dish_name}</TableCell>
-                  <TableCell>
+                  <TableCell className="w-[20%]">
                     <Input type="number" defaultValue={10} min={1} />
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="w-[10%]">
                     <Button
                       size={"icon"}
                       variant={"ghost"}

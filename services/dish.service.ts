@@ -1,5 +1,7 @@
 "use server";
 
+import { revalidateTag } from "next/cache";
+
 const API_URL = process.env.API_URL;
 
 export type IDish = {
@@ -34,10 +36,13 @@ export type IDishType = {
 
 export async function addDish(body: FormData) {
   const res = await fetch(`${API_URL}/dish/`, {
+    next: { tags: ["dish"] },
     method: "POST",
-    body: body,
     cache: "no-store",
+    body: body,
   });
+
+  revalidateTag("dish");
 
   return await res.json();
 }
@@ -45,9 +50,9 @@ export async function addDish(body: FormData) {
 export async function addDishPrice(body: { dish_id: string; price: number }) {
   const res = await fetch(`${API_URL}/dish_price/`, {
     method: "POST",
+    cache: "no-store",
     body: JSON.stringify({ ...body, id: null, is_active: true }),
     headers: { "Content-Type": "application/json" },
-    cache: "no-store",
   });
 
   return res.status;
@@ -55,8 +60,8 @@ export async function addDishPrice(body: { dish_id: string; price: number }) {
 
 export async function getDishPrice(): Promise<IDishType[]> {
   const res = await fetch(`${API_URL}/dish_price/`, {
+    next: { tags: ["dish"], revalidate: 600 },
     method: "GET",
-    cache: "no-store",
   });
 
   return await res.json();
@@ -65,9 +70,9 @@ export async function getDishPrice(): Promise<IDishType[]> {
 export async function editDishPrice(id: string, body: string) {
   const res = await fetch(`${API_URL}/dish_price/${id}`, {
     method: "PUT",
+    cache: "no-store",
     headers: { "Content-Type": "application/json" },
     body,
-    cache: "no-store",
   });
 
   return res.status;
@@ -75,8 +80,8 @@ export async function editDishPrice(id: string, body: string) {
 
 export async function getDishPriceById(dishId: string) {
   const res = await fetch(`${API_URL}/dish_price/${dishId}/`, {
+    next: { tags: ["dish"], revalidate: 600 },
     method: "GET",
-    cache: "no-store",
   });
 
   return await res.json();
