@@ -29,6 +29,17 @@ export async function getPantry(date: Date = new Date()) {
   return await res.json();
 }
 
+export async function getDish(date: Date = new Date(), type: "main_dish" | "side_dish" | "extra") {
+  const dateFormat = format(date, "yyyy-MM-dd");
+
+  const res = await fetch(`${API_URL}/dish_menu/${dateFormat}/${type}`, {
+    method: "GET",
+    next: { revalidate: 600, tags: ["dish", "menu"] },
+  });
+
+  return await res.json();
+}
+
 export async function createDishMenu(body: {
   items: { dish_availability: number; dish_price_id: string }[];
   menu_id: string;

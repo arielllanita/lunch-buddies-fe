@@ -58,14 +58,15 @@ export default function Pantry({ state, dispatch }: PantryProps) {
         return { ...x.dish_price_id, dish_availability: x.dish_availability };
       });
 
-      console.log("response", response);
-      console.log("date", date);
-
+      // console.log("response", response);
+      // console.log("date", date);
       // console.log("pantry", pantry);
 
       dispatch({ type: "IS_PANTRY_CLOSE", payload: response.length > 0 });
 
-      dispatch({ type: "ADD_TO_PANTRY", payload: pantry });
+      if (response.length > 0) {
+        dispatch({ type: "ADD_TO_PANTRY", payload: pantry });
+      }
     })();
   }, [date, dispatch]);
 

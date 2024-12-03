@@ -43,8 +43,11 @@ export function reducer(state: IDashboardState, action: IDashboardAction) {
       return { ...state, suppliers };
     }
     case "ADD_TO_PANTRY": {
-      // const pantry = uniqBy(state.pantry.concat(action.payload), "id");
-      const pantry = uniqBy(action.payload, "id");
+      const pantry = uniqBy(state.pantry.concat(action.payload), "id");
+      
+      // console.log('up', action.payload);
+      // const pantry = uniqBy(action.payload, "id");
+      // console.log('down', pantry);
       return { ...state, pantry };
     }
     case "EDIT_PANTRY": {
