@@ -105,7 +105,7 @@ function CustomRow({ dish }: { dish: IDishType }) {
       <TableCell>&#x20B1;{dish.price.toFixed(2)}</TableCell>
       <TableCell>{dish.dish_id.created_at.split("T")[0]}</TableCell>
       <TableCell>
-        <div className="flex justify-end gap-3">
+        <div className="flex justify-end gap-4">
           <Button
             variant={"outline"}
             size={"icon"}
@@ -175,7 +175,7 @@ function EditingRow({ rowData, cancelEditing }: { rowData: IDishType; cancelEdit
       <TableCell>{rowData.dish_id.created_at.split("T")[0]}</TableCell>
 
       <TableCell>
-        <div className="flex justify-end gap-3">
+        <div className="flex justify-end gap-4">
           <Button variant={"outline"} size={"icon"} onClick={saveHandler}>
             <Save className="text-primary" />
           </Button>

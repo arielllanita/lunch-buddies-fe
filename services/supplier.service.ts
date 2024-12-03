@@ -16,6 +16,7 @@ export async function getSupplier(): Promise<ISupplier[]> {
     method: "GET",
     next: { revalidate: 600, tags: ["supplier"] },
   });
+
   return await res.json();
 }
 
@@ -39,6 +40,9 @@ export async function editSupplier(body: ISupplier) {
     headers: { "Content-Type": "application/json" },
     cache: "no-store",
   });
+
+  revalidateTag("supplier");
+
   return res.status;
 }
 
@@ -47,5 +51,8 @@ export async function removeSupplier(id: string) {
     method: "DELETE",
     cache: "no-store",
   });
+
+  revalidateTag("supplier");
+
   return res.status;
 }

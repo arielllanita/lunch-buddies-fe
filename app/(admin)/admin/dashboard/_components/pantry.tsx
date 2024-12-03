@@ -14,9 +14,25 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Clock10, Minus, Plus } from "lucide-react";
-import { Dispatch, useState } from "react";
-import { IDashboardAction, IDashboardState } from "../page";
+import { Dispatch, useEffect, useState } from "react";
+import { IDashboardAction, IDashboardState } from "../reducer";
+import { createDishMenu, getPantry } from "@/services/dish_menu.service";
+import { format } from "date-fns/format";
+import { createMenu, deleteMenuByDate, getMenuByDate } from "@/services/menu.service";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 export type PantryProps = {
   state: IDashboardState;
@@ -24,11 +40,34 @@ export type PantryProps = {
 };
 
 export default function Pantry({ state, dispatch }: PantryProps) {
+  const router = useRouter();
+
   const [date, setDate] = useState<Date>();
 
-  function submitPantry() {
-    console.log("submit_pantry", state.pantry);
-  }
+  // Get pantry
+  useEffect(() => {
+    (async () => {
+      // Silly but will improve this
+      if (!date) {
+        setDate(new Date());
+        return;
+      }
+
+      const response = await getPantry(date);
+      const pantry = await response.map((x: any) => {
+        return { ...x.dish_price_id, dish_availability: x.dish_availability };
+      });
+
+      console.log("response", response);
+      console.log("date", date);
+
+      // console.log("pantry", pantry);
+
+      dispatch({ type: "IS_PANTRY_CLOSE", payload: response.length > 0 });
+
+      dispatch({ type: "ADD_TO_PANTRY", payload: pantry });
+    })();
+  }, [date, dispatch]);
 
   return (
     <Card>
@@ -40,14 +79,24 @@ export default function Pantry({ state, dispatch }: PantryProps) {
             <Button
               variant={"outline"}
               onClick={() => {
-                dispatch({ type: "CLEAR_PANTRY" });
+                if (state.isPantryAlreadyAdded) {
+                  deleteMenuByDate(date);
+                  router.refresh();
+                } else {
+                  dispatch({ type: "CLEAR_PANTRY" });
+                }
               }}
             >
               Clear
             </Button>
-            <Button onClick={submitPantry}>
-              Add to Pantry <Plus />
-            </Button>
+
+            {state.isPantryAlreadyAdded ? (
+              <Button disabled>
+                Add to Pantry <Plus />
+              </Button>
+            ) : (
+              <SubmitPantryBtn state={state} date={date} />
+            )}
           </div>
         </div>
 
@@ -77,17 +126,34 @@ export default function Pantry({ state, dispatch }: PantryProps) {
             </TableHeader>
             <TableBody>
               {state.pantry.map((d) => (
-                <TableRow key={d.id}>
+                <TableRow
+                  key={d.id}
+                  className={
+                    state.isPantryAlreadyAdded
+                      ? "text-muted-foreground hover:bg-card hover:cursor-not-allowed"
+                      : ""
+                  }
+                >
                   <TableCell className="w-[20%]">{d.dish_id.dish_type}</TableCell>
                   <TableCell>{d.dish_id.dish_name}</TableCell>
                   <TableCell className="w-[20%]">
-                    <Input type="number" defaultValue={10} min={1} />
+                    <Input
+                      type="number"
+                      value={d.dish_availability}
+                      min={1}
+                      onChange={(e) => {
+                        const dish_availability = Number(e.target.value);
+                        dispatch({ type: "EDIT_PANTRY", payload: { ...d, dish_availability } });
+                      }}
+                      disabled={state.isPantryAlreadyAdded}
+                    />
                   </TableCell>
                   <TableCell className="w-[10%]">
                     <Button
                       size={"icon"}
                       variant={"ghost"}
                       onClick={() => dispatch({ type: "REMOVE_FROM_PANTRY", payload: d.id })}
+                      disabled={state.isPantryAlreadyAdded}
                     >
                       <Minus className="text-destructive" />
                     </Button>
@@ -99,5 +165,59 @@ export default function Pantry({ state, dispatch }: PantryProps) {
         </ScrollArea>
       </CardContent>
     </Card>
+  );
+}
+
+function SubmitPantryBtn({ state, date }: { state: IDashboardState; date?: Date }) {
+  const router = useRouter();
+  const [isOpenDialog, setIsOpenDialog] = useState(false);
+
+  async function submitPantry() {
+    if (state.pantry.length < 1) {
+      setIsOpenDialog(false);
+      toast.error("Please add dish to the pantry");
+      return;
+    }
+
+    const menuByDate = await getMenuByDate(date);
+    if (menuByDate.length > 0) {
+      await deleteMenuByDate(date);
+    }
+
+    const menu = await createMenu(date);
+
+    const items = state.pantry.map((v) => ({
+      dish_availability: v.dish_availability,
+      dish_price_id: v.id,
+    }));
+
+    await createDishMenu({ items, menu_id: menu.id });
+
+    router.refresh();
+  }
+
+  return (
+    <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
+      <DialogTrigger asChild>
+        <Button>
+          Add to Pantry <Plus />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Add dish on you pantry</DialogTitle>
+          <DialogDescription>
+            Are you sure do you want to add these dishes on your pantry?
+          </DialogDescription>
+        </DialogHeader>
+
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant={"ghost"}>Cancel</Button>
+          </DialogClose>
+          <Button onClick={submitPantry}>Yes, Proceed</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

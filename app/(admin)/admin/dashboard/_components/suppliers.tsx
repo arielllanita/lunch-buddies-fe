@@ -24,7 +24,7 @@ import { getSupplier } from "@/services/supplier.service";
 import { debounce } from "lodash";
 import { Plus } from "lucide-react";
 import { ChangeEvent, Dispatch, useEffect, useState } from "react";
-import { IDashboardAction, IDashboardState } from "../page";
+import { IDashboardAction, IDashboardState } from "../reducer";
 import { getDishBySupplier } from "@/services/dish_menu.service";
 
 export type SupplierProps = {
@@ -52,7 +52,7 @@ export default function Suppliers({ dispatch, state }: SupplierProps) {
       const dishes = await getDishBySupplier(selectedSupplier);
       dispatch({ type: "ADD_DISH", payload: dishes });
     })();
-  }, [selectedSupplier, dispatch]);
+  }, [selectedSupplier, dispatch, state.triggerFetch]);
 
   return (
     <Card>
@@ -63,7 +63,9 @@ export default function Suppliers({ dispatch, state }: SupplierProps) {
           <Select
             value={selectedSupplier}
             onValueChange={(id) => {
-              dispatch({ type: "CLEAR_PANTRY" });
+              if (!state.isPantryAlreadyAdded) {
+                dispatch({ type: "CLEAR_PANTRY" });
+              }
               setSelectedSupplier(id);
             }}
           >
@@ -84,7 +86,7 @@ export default function Suppliers({ dispatch, state }: SupplierProps) {
             onChange={debounce(function (e: ChangeEvent<HTMLInputElement>) {
               const value = e.target.value.trim();
               if (value === "") {
-                dispatch({ type: "REFETCH_DISHES_SUPPLIERS" });
+                dispatch({ type: "REFETCH_DISHES" });
               } else {
                 dispatch({ type: "FILTER_DISH_BY_NAME", payload: value });
               }
@@ -111,8 +113,12 @@ export default function Suppliers({ dispatch, state }: SupplierProps) {
                       size={"icon"}
                       variant={"ghost"}
                       onClick={() => {
-                        dispatch({ type: "ADD_TO_PANTRY", payload: d });
+                        dispatch({
+                          type: "ADD_TO_PANTRY",
+                          payload: { ...d, dish_availability: 10 },
+                        });
                       }}
+                      disabled={state.isPantryAlreadyAdded}
                     >
                       <Plus className="text-primary" />
                     </Button>

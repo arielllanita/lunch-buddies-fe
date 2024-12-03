@@ -34,6 +34,24 @@ export type IDishType = {
   date: string;
 };
 
+export async function getDishPrice(): Promise<IDishType[]> {
+  const res = await fetch(`${API_URL}/dish_price/`, {
+    next: { tags: ["dish"], revalidate: 600 },
+    method: "GET",
+  });
+
+  return await res.json();
+}
+
+export async function getDishPriceById(dishId: string) {
+  const res = await fetch(`${API_URL}/dish_price/${dishId}/`, {
+    next: { tags: ["dish"], revalidate: 600 },
+    method: "GET",
+  });
+
+  return await res.json();
+}
+
 export async function addDish(body: FormData) {
   const res = await fetch(`${API_URL}/dish/`, {
     next: { tags: ["dish"] },
@@ -55,16 +73,9 @@ export async function addDishPrice(body: { dish_id: string; price: number }) {
     headers: { "Content-Type": "application/json" },
   });
 
+  revalidateTag("dish");
+
   return res.status;
-}
-
-export async function getDishPrice(): Promise<IDishType[]> {
-  const res = await fetch(`${API_URL}/dish_price/`, {
-    next: { tags: ["dish"], revalidate: 600 },
-    method: "GET",
-  });
-
-  return await res.json();
 }
 
 export async function editDishPrice(id: string, body: string) {
@@ -75,16 +86,9 @@ export async function editDishPrice(id: string, body: string) {
     body,
   });
 
+  revalidateTag("dish");
+
   return res.status;
-}
-
-export async function getDishPriceById(dishId: string) {
-  const res = await fetch(`${API_URL}/dish_price/${dishId}/`, {
-    next: { tags: ["dish"], revalidate: 600 },
-    method: "GET",
-  });
-
-  return await res.json();
 }
 
 export async function deleteDish(dishId: string) {
@@ -92,6 +96,8 @@ export async function deleteDish(dishId: string) {
     method: "DELETE",
     cache: "no-store",
   });
+
+  revalidateTag("dish");
 
   return res.status;
 }

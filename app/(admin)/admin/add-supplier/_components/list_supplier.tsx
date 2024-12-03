@@ -131,8 +131,8 @@ function CustomRow({ rowData }: { rowData: ISupplier }) {
           <TableCell>{rowData.side_dish_free ? <Check /> : <X />}</TableCell>
         </>
       )}
-      <TableCell>
-        <div className="flex gap-4">
+      <TableCell className="w-[10%]">
+        <div className="flex justify-end gap-4">
           <Button
             variant={"outline"}
             size={"icon"}

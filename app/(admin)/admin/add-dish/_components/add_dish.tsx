@@ -24,7 +24,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
-import { FileWithPath } from "react-dropzone";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
