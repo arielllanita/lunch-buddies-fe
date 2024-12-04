@@ -1,22 +1,26 @@
 ## Lunch Buddies App Frontend
 
-Running the development server:
+### Commands:
 
 ```bash
+# install dependencies
+npm install
+# run the server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# seed the database
+npx prisma generate
+# push schema updates to database
+npx prisma db seed
+# generate prisma client
+npx prisma db push
+# view database locally
+npx prisma studio
 ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 ### Tech Stack
 
-- NextJS 14
-- NextAuth.js
-- Shadcn/ui
-- Tailwindcss
+- [NextJS 14](https://nextjs.org/)
+- [Prisma ORM](https://www.prisma.io/)
+- [NextAuth](https://next-auth.js.org/)
+- [Shadcn/ui](https://ui.shadcn.com/)
+- [Tailwindcss](https://tailwindcss.com/)
