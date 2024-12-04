@@ -7,13 +7,13 @@
 npm install
 # run the server
 npm run dev
-# seed the database
-npx prisma generate
-# push schema updates to database
-npx prisma db seed
 # generate prisma client
+npx prisma generate
+# seed the database
+npx prisma db seed
+# push schema updates to database
 npx prisma db push
-# view database locally
+# view database locally or use gui like mongodb compass
 npx prisma studio
 ```
 
