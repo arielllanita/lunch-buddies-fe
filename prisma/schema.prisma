@@ -21,6 +21,10 @@ enum DishType {
   EXTRA
 }
 
+// TRACKER
+// PRISMA COURSE
+// MODELS
+
 model User {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   email     String   @unique
@@ -37,7 +41,7 @@ model User {
 
 model Supplier {
   id             String   @id @default(auto()) @map("_id") @db.ObjectId
-  name           String
+  name           String   @unique
   isFreeMainDish Boolean
   isFreeSideDish Boolean
   createdAt      DateTime @default(now())
@@ -52,12 +56,13 @@ model Dish {
   name       String
   type       DishType
   price      Float
-  isActive   Boolean  @default(true)
   tags       String
-  supplier   Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
-  supplierId String   @db.ObjectId
+  imgUrl     String   @default("/images/default-dish-img.jpg")
+  isActive   Boolean  @default(true)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+  supplier   Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  supplierId String   @db.ObjectId
   menu       Menu[]
 
   @@map("dishes")
@@ -67,10 +72,10 @@ model Menu {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   date      DateTime
   quantity  Int
-  dish      Dish     @relation(fields: [dishId], references: [id], onDelete: Cascade)
-  dishId    String   @db.ObjectId
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  dish      Dish     @relation(fields: [dishId], references: [id], onDelete: Cascade)
+  dishId    String   @db.ObjectId
   order     Order[]
 
   @@index([date])
