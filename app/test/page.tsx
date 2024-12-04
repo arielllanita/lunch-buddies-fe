@@ -3,25 +3,14 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-// import { socket } from "@/lib/socket";
+import useSockets from "@/hooks/use-sockets";
 import { useEffect, useState } from "react";
-import { Socket, io } from "socket.io-client";
-import { toast } from "sonner";
 
 export default function Page() {
   const [data, setData] = useState("");
-  const [messages, setMessages] = useState("");
+  const [messages, setMessages] = useState([]);
 
-  const [socket, setSocket] = useState<Socket | null>(null);
-
-  useEffect(() => {
-    const socketInstance = io();
-    setSocket(socketInstance);
-
-    return () => {
-      socketInstance.disconnect();
-    };
-  }, []);
+  const { socket } = useSockets();
 
   useEffect(() => {
     if (!socket) return;
@@ -30,36 +19,29 @@ export default function Page() {
     //   console.log("connected to websocket server");
     // });
 
-    socket.on("store_chat", (chat) => {
-      console.log("store_chat", chat);
-
-      setMessages(chat);
+    socket.on("get_msgs", (msgs) => {
+      setMessages(msgs);
       setData("");
     });
 
     return () => {
       socket.disconnect();
-      socket.off("store_chat");
+      socket.off("get_msgs");
     };
   }, [socket]);
 
   const sendMessage = () => {
-    socket?.emit("send_chat", data);
+    socket?.emit("send_msg", data);
   };
 
   return (
     <div className="h-screen flex justify-center items-center">
       <Card>
         <CardHeader>
-          <CardTitle>Send message</CardTitle>
+          <CardTitle>Messages</CardTitle>
         </CardHeader>
         <CardContent>
-          <ul>
-            {/* {messages.map((v, i) => (
-              <li key={i}>{v}</li>
-            ))} */}
-            {messages}
-          </ul>
+          <pre>{JSON.stringify(messages, null, 2)}</pre>
         </CardContent>
 
         <CardFooter className="gap-3">
