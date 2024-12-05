@@ -1,5 +1,7 @@
 "use client";
 
+import { getDish } from "@/actions/dish.actions";
+import { getSuppliers } from "@/actions/supplier.action";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -19,27 +21,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { IDishType, getDishPrice } from "@/services/dish.service";
-import { getSupplier } from "@/services/supplier.service";
+import { capitalCase } from "change-case";
 import { debounce } from "lodash";
 import { Plus } from "lucide-react";
-import { ChangeEvent, Dispatch, useEffect, useState } from "react";
-import { IDashboardAction, IDashboardState } from "../reducer";
-import { getDishBySupplier } from "@/services/dish_menu.service";
+import { ChangeEvent, useContext, useEffect, useState } from "react";
+import { DashboardContext } from "../_context/dashboard.context";
 
-export type SupplierProps = {
-  state: IDashboardState;
-  dispatch: Dispatch<IDashboardAction>;
-};
-
-export default function Suppliers({ dispatch, state }: SupplierProps) {
+export default function Suppliers() {
   const [selectedSupplier, setSelectedSupplier] = useState("");
-  const [dishes, setDishes] = useState<IDishType[]>([]);
+
+  const { state, dispatch } = useContext(DashboardContext);
 
   // Fetch suppliers
   useEffect(() => {
     (async () => {
-      const suppliers = await getSupplier();
+      const suppliers = await getSuppliers();
       dispatch({ type: "ADD_SUPPLIER", payload: suppliers });
     })();
   }, [dispatch]);
@@ -49,10 +45,10 @@ export default function Suppliers({ dispatch, state }: SupplierProps) {
     (async () => {
       if (!selectedSupplier) return;
 
-      const dishes = await getDishBySupplier(selectedSupplier);
+      const dishes = await getDish({ supplierId: selectedSupplier });
       dispatch({ type: "ADD_DISH", payload: dishes });
     })();
-  }, [selectedSupplier, dispatch, state.triggerFetch]);
+  }, [selectedSupplier, dispatch]);
 
   return (
     <Card>
@@ -62,20 +58,16 @@ export default function Suppliers({ dispatch, state }: SupplierProps) {
         <div className="grid grid-cols-2 gap-3">
           <Select
             value={selectedSupplier}
-            onValueChange={(id) => {
-              if (!state.isPantryAlreadyAdded) {
-                dispatch({ type: "CLEAR_PANTRY" });
-              }
-              setSelectedSupplier(id);
-            }}
+            onValueChange={setSelectedSupplier}
+            disabled={state.isPantryAlreadyAdded}
           >
             <SelectTrigger>
               <SelectValue placeholder="Supplier name" />
             </SelectTrigger>
             <SelectContent>
               {state.suppliers.map((s) => (
-                <SelectItem key={s.id} value={s.id!}>
-                  {s.supplier_name}
+                <SelectItem key={s.id} value={s.id}>
+                  {s.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -84,13 +76,10 @@ export default function Suppliers({ dispatch, state }: SupplierProps) {
           <Input
             placeholder="Search"
             onChange={debounce(function (e: ChangeEvent<HTMLInputElement>) {
+              // TODO: FILTER DISH BY NAME
               const value = e.target.value.trim();
-              if (value === "") {
-                dispatch({ type: "REFETCH_DISHES" });
-              } else {
-                dispatch({ type: "FILTER_DISH_BY_NAME", payload: value });
-              }
             }, 2000)}
+            disabled={state.isPantryAlreadyAdded}
           />
         </div>
 
@@ -106,8 +95,8 @@ export default function Suppliers({ dispatch, state }: SupplierProps) {
             <TableBody>
               {state.dishes.map((d) => (
                 <TableRow key={d.id}>
-                  <TableCell>{d.dish_id.dish_type}</TableCell>
-                  <TableCell>{d.dish_id.dish_name}</TableCell>
+                  <TableCell>{capitalCase(`${d.type} Dish`)}</TableCell>
+                  <TableCell>{d.name}</TableCell>
                   <TableCell className="w-[10%]">
                     <Button
                       size={"icon"}

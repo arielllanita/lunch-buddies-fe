@@ -1,4 +1,4 @@
-import { userLogin } from "@/services/user.service";
+import { loginUser } from "@/actions/user.action";
 import { NextAuthOptions } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 
@@ -12,19 +12,14 @@ export const auth_options: NextAuthOptions = {
       async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        const data = await userLogin(
-          JSON.stringify({
-            email: credentials.email,
-            password: credentials.password,
-          })
-        );
+        const data = await loginUser(credentials.email, credentials.password);
 
-        if (!data.role) return null;
+        if (!data) return null;
 
         const sessionUser = {
-          id: data.userid,
-          first_name: data.firstname,
-          last_name: data.lastname,
+          id: data.id,
+          first_name: data.firstName,
+          last_name: data.lastName,
           role: data.role,
         };
 
@@ -50,6 +45,6 @@ export const auth_options: NextAuthOptions = {
   pages: { signIn: "/" },
   session: {
     strategy: "jwt",
-    maxAge: 60 * 60 * 24 * 6, // 6 days
+    maxAge: 518400, // 6 days
   },
 };

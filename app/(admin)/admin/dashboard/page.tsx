@@ -1,27 +1,27 @@
-"use client";
+import { Skeleton } from "@/components/ui/skeleton";
+import dynamic from "next/dynamic";
+import { DashboardProvider } from "./_context/dashboard.context";
 
-import Pantry from "./_components/pantry";
-import Suppliers from "./_components/suppliers";
-import { useReducer } from "react";
-import { initState, reducer } from "./reducer";
+const Suppliers = dynamic(() => import("./_components/suppliers"), {
+  loading: () => <Skeleton className="h-[40rem]" />,
+  ssr: false,
+});
 
-/**
- * - filter dishes by supplier (check)
- * - fetch for existing pantry
- * - shape pantry as payload for submission
- * - submit pantry to api
- */
+const Pantry = dynamic(() => import("./_components/pantry"), {
+  loading: () => <Skeleton className="h-[40rem]" />,
+  ssr: false,
+});
 
 export default function Page() {
-  const [state, dispatch] = useReducer(reducer, initState);
-
   return (
     <div className="flex flex-col gap-6 p-7">
       <h1 className="text-4xl">Dashboard</h1>
 
       <div className="grid grid-cols-2 gap-4">
-        <Suppliers dispatch={dispatch} state={state} />
-        <Pantry dispatch={dispatch} state={state} />
+        <DashboardProvider>
+          <Suppliers />
+          <Pantry />
+        </DashboardProvider>
       </div>
     </div>
   );

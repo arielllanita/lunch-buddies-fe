@@ -18,27 +18,22 @@ import {
 } from "lucide-react";
 import { Session } from "next-auth";
 import { signOut } from "next-auth/react";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function ProfileDropDown({ profile: { user } }: { profile: Session }) {
-  const router = useRouter();
   const pathname = usePathname();
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const isAdmin = user.role === "Admin";
+  const isAdmin = user.role === "ADMIN";
   const isInAdminRoutes = pathname.startsWith("/admin");
   const isShowAdminMenu = isAdmin && !isInAdminRoutes;
 
-  const adminHandler = () => router.replace("/admin/dashboard");
   const myOrdersHandler = () => {};
-  const hompageHandler = () => router.replace("/employee");
   const changePasswordHandler = () => {};
   const signOutHandler = () => signOut({ callbackUrl: "/" });
-
-  // change password api
-  // http://localhost:8000/user/d7d0e9b4-fc42-4385-a120-a45babdfd7a7
 
   return (
     <DropdownMenu onOpenChange={setIsDropdownOpen}>
@@ -56,28 +51,32 @@ export default function ProfileDropDown({ profile: { user } }: { profile: Sessio
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         {isShowAdminMenu && (
-          <DropdownMenuItem onSelect={adminHandler}>
+          <DropdownMenuItem>
             <UserCog />
-            <span>Admin</span>
+            <Link href={"/admin/dashboard"} className="text-black">
+              Admin
+            </Link>
           </DropdownMenuItem>
         )}
         {isInAdminRoutes ? (
-          <DropdownMenuItem onSelect={hompageHandler}>
+          <DropdownMenuItem className="cursor-pointer">
             <Home />
-            <span>Homepage</span>
+            <Link href={"/employee"} className="text-black">
+              Homepage
+            </Link>
           </DropdownMenuItem>
         ) : (
-          <DropdownMenuItem onSelect={myOrdersHandler}>
+          <DropdownMenuItem onSelect={myOrdersHandler} className="cursor-pointer">
             <ShoppingCart />
             <span>My Orders</span>
           </DropdownMenuItem>
         )}
-        <DropdownMenuItem onSelect={changePasswordHandler}>
+        <DropdownMenuItem onSelect={changePasswordHandler} className="cursor-pointer">
           <KeyRound />
           <span>Change Password</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={signOutHandler}>
+        <DropdownMenuItem onSelect={signOutHandler} className="cursor-pointer">
           <LogOut />
           <span>Logout</span>
         </DropdownMenuItem>

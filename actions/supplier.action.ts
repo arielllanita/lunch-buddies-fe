@@ -5,16 +5,16 @@
 import prisma from "@/prisma/client";
 import { Prisma } from "@prisma/client";
 
+export async function getSuppliers(options?: Prisma.SupplierWhereInput) {
+  const suppliers = await prisma.supplier.findMany({ where: options });
+  return suppliers;
+}
+
 type SupplierCreate = Prisma.Args<typeof prisma.supplier, "create">["data"];
 
 export async function createSupplier(payload: SupplierCreate) {
   const supplier = await prisma.supplier.create({ data: payload });
   return supplier;
-}
-
-export async function getSuppliers() {
-  const suppliers = await prisma.supplier.findMany();
-  return suppliers;
 }
 
 type SupplierUpdate = Prisma.Args<typeof prisma.supplier, "update">["data"];

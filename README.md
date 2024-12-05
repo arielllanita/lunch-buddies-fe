@@ -1,4 +1,4 @@
-## Lunch Buddies App Frontend
+## Lunch Buddies App
 
 ### Commands:
 

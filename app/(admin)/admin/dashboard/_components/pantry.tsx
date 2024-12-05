@@ -1,8 +1,19 @@
 "use client";
 
+import { createMenu, getMenus } from "@/actions/menu.actions";
 import { DatePickerWithPresets } from "@/components/date_picker_with_presets";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
@@ -14,58 +25,35 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Clock10, Minus, Plus } from "lucide-react";
-import { Dispatch, useEffect, useState } from "react";
-import { IDashboardAction, IDashboardState } from "../reducer";
-import { createDishMenu, getPantry } from "@/services/dish_menu.service";
-import { format } from "date-fns/format";
-import { createMenu, deleteMenuByDate, getMenuByDate } from "@/services/menu.service";
-import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
+import { useContext, useEffect, useState } from "react";
+import { toast } from "sonner";
+import { DashboardContext } from "../_context/dashboard.context";
+import { IDashboardState } from "../_context/dashboard.reducer";
+import { startOfDay } from "date-fns/startOfDay";
+import { endOfDay } from "date-fns/endOfDay";
+import { capitalCase } from "change-case";
 
-export type PantryProps = {
-  state: IDashboardState;
-  dispatch: Dispatch<IDashboardAction>;
-};
-
-export default function Pantry({ state, dispatch }: PantryProps) {
+export default function Pantry() {
   const router = useRouter();
+  const { state, dispatch } = useContext(DashboardContext);
 
-  const [date, setDate] = useState<Date>();
+  const [date, setDate] = useState<Date | undefined>(new Date());
 
-  // Get pantry
+  // Check if pantry is already set
   useEffect(() => {
     (async () => {
-      // Silly but will improve this
-      if (!date) {
-        setDate(new Date());
-        return;
-      }
+      const menus = await getMenus({ date: { gte: startOfDay(date!), lte: endOfDay(date!) } });
+      const isPantryAlreadyAdded = menus.length > 0;
 
-      const response = await getPantry(date);
-      const pantry = await response.map((x: any) => {
-        return { ...x.dish_price_id, dish_availability: x.dish_availability };
-      });
+      dispatch({ type: "IS_PANTRY_CLOSE", payload: isPantryAlreadyAdded });
 
-      // console.log("response", response);
-      // console.log("date", date);
-      // console.log("pantry", pantry);
-
-      dispatch({ type: "IS_PANTRY_CLOSE", payload: response.length > 0 });
-
-      if (response.length > 0) {
-        dispatch({ type: "ADD_TO_PANTRY", payload: pantry });
+      if (isPantryAlreadyAdded) {
+        const dishes = menus.map((menu) => ({ ...menu.dish, dish_availability: menu.quantity }));
+        dispatch({ type: "ADD_TO_PANTRY", payload: dishes });
+      } else {
+        dispatch({ type: "CLEAR_PANTRY" });
       }
     })();
   }, [date, dispatch]);
@@ -81,7 +69,7 @@ export default function Pantry({ state, dispatch }: PantryProps) {
               variant={"outline"}
               onClick={() => {
                 if (state.isPantryAlreadyAdded) {
-                  deleteMenuByDate(date);
+                  // TODO: ADD CLEAR MENU FUNCTION
                   router.refresh();
                 } else {
                   dispatch({ type: "CLEAR_PANTRY" });
@@ -91,13 +79,7 @@ export default function Pantry({ state, dispatch }: PantryProps) {
               Clear
             </Button>
 
-            {state.isPantryAlreadyAdded ? (
-              <Button disabled>
-                Add to Pantry <Plus />
-              </Button>
-            ) : (
-              <SubmitPantryBtn state={state} date={date} />
-            )}
+            <SubmitPantryBtn state={state} date={date!} />
           </div>
         </div>
 
@@ -135,8 +117,8 @@ export default function Pantry({ state, dispatch }: PantryProps) {
                       : ""
                   }
                 >
-                  <TableCell className="w-[20%]">{d.dish_id.dish_type}</TableCell>
-                  <TableCell>{d.dish_id.dish_name}</TableCell>
+                  <TableCell className="w-[20%]">{capitalCase(`${d.type} Dish`)}</TableCell>
+                  <TableCell>{d.name}</TableCell>
                   <TableCell className="w-[20%]">
                     <Input
                       type="number"
@@ -169,44 +151,37 @@ export default function Pantry({ state, dispatch }: PantryProps) {
   );
 }
 
-function SubmitPantryBtn({ state, date }: { state: IDashboardState; date?: Date }) {
+function SubmitPantryBtn({ state, date }: { state: IDashboardState; date: Date }) {
   const router = useRouter();
   const [isOpenDialog, setIsOpenDialog] = useState(false);
 
   async function submitPantry() {
     if (state.pantry.length < 1) {
       setIsOpenDialog(false);
-      toast.error("Please add dish to the pantry");
+      toast.error("Please add dish to your pantry");
       return;
     }
 
-    const menuByDate = await getMenuByDate(date);
-    if (menuByDate.length > 0) {
-      await deleteMenuByDate(date);
+    const menus = await createMenu(
+      state.pantry.map((x) => ({ dishId: x.id, quantity: x.dish_availability, date }))
+    );
+
+    if (menus.count > 0) {
+      toast.success("Pantry added successfully!");
+      setIsOpenDialog(false);
+      router.refresh();
     }
-
-    const menu = await createMenu(date);
-
-    const items = state.pantry.map((v) => ({
-      dish_availability: v.dish_availability,
-      dish_price_id: v.id,
-    }));
-
-    await createDishMenu({ items, menu_id: menu.id });
-
-    router.refresh();
   }
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
-      <DialogTrigger asChild>
-        <Button>
-          Add to Pantry <Plus />
-        </Button>
-      </DialogTrigger>
+      <Button onClick={() => setIsOpenDialog(true)} disabled={state.isPantryAlreadyAdded}>
+        Add to Pantry <Plus />
+      </Button>
+
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add dish on you pantry</DialogTitle>
+          <DialogTitle>Add dish on your pantry</DialogTitle>
           <DialogDescription>
             Are you sure do you want to add these dishes on your pantry?
           </DialogDescription>

@@ -48,6 +48,8 @@ const items = [
   },
 ];
 
+// TODO: ADD ACTIVE LINKS STYLE
+
 export default function AdminSidebar() {
   return (
     <Sidebar>

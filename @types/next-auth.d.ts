@@ -6,7 +6,7 @@ import { JWT } from "next-auth/jwt";
  */
 type ExtendedUser = {
   id?: string;
-  role?: "Employee" | "Admin";
+  role?: "USER" | "ADMIN";
   first_name?: string;
   last_name?: string;
 };
