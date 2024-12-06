@@ -24,11 +24,12 @@ import {
 import { capitalCase } from "change-case";
 import { debounce } from "lodash";
 import { Plus } from "lucide-react";
-import { ChangeEvent, useContext, useEffect, useState } from "react";
+import { ChangeEvent, useContext, useEffect, useRef, useState } from "react";
 import { DashboardContext } from "../_context/dashboard.context";
 
 export default function Suppliers() {
   const [selectedSupplier, setSelectedSupplier] = useState("");
+  const [dishNameFilter, setDishNameFilter] = useState("");
 
   const { state, dispatch } = useContext(DashboardContext);
 
@@ -45,10 +46,22 @@ export default function Suppliers() {
     (async () => {
       if (!selectedSupplier) return;
 
-      const dishes = await getDish({ supplierId: selectedSupplier });
+      // TODO: FIX TYPESCRIPT ISSUE
+      let dishes = [];
+      if (dishNameFilter) {
+        const res = await getDish({
+          supplierId: selectedSupplier,
+          name: { contains: dishNameFilter, mode: "insensitive" },
+        });
+        dishes = res;
+      } else {
+        const res = await getDish({ supplierId: selectedSupplier });
+        dishes = res;
+      }
+
       dispatch({ type: "ADD_DISH", payload: dishes });
     })();
-  }, [selectedSupplier, dispatch]);
+  }, [dispatch, selectedSupplier, dishNameFilter]);
 
   return (
     <Card>
@@ -76,9 +89,9 @@ export default function Suppliers() {
           <Input
             placeholder="Search"
             onChange={debounce(function (e: ChangeEvent<HTMLInputElement>) {
-              // TODO: FILTER DISH BY NAME
               const value = e.target.value.trim();
-            }, 2000)}
+              setDishNameFilter(value);
+            }, 1500)}
             disabled={state.isPantryAlreadyAdded}
           />
         </div>

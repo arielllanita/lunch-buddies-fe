@@ -1,6 +1,6 @@
 "use client";
 
-import { createMenu, getMenus } from "@/actions/menu.actions";
+import { createMenu, getMenus, removeMenuByDate } from "@/actions/menu.actions";
 import { DatePickerWithPresets } from "@/components/date_picker_with_presets";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -27,10 +27,10 @@ import {
 } from "@/components/ui/table";
 import { Clock10, Minus, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useContext, useEffect, useState } from "react";
+import { Dispatch, useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { DashboardContext } from "../_context/dashboard.context";
-import { IDashboardState } from "../_context/dashboard.reducer";
+import { IDashboardAction, IDashboardState } from "../_context/dashboard.reducer";
 import { startOfDay } from "date-fns/startOfDay";
 import { endOfDay } from "date-fns/endOfDay";
 import { capitalCase } from "change-case";
@@ -44,16 +44,17 @@ export default function Pantry() {
   // Check if pantry is already set
   useEffect(() => {
     (async () => {
-      const menus = await getMenus({ date: { gte: startOfDay(date!), lte: endOfDay(date!) } });
+      if (!date) return;
+
+      const menus = await getMenus({ date: { gte: startOfDay(date), lte: endOfDay(date) } });
       const isPantryAlreadyAdded = menus.length > 0;
 
       dispatch({ type: "IS_PANTRY_CLOSE", payload: isPantryAlreadyAdded });
+      dispatch({ type: "CLEAR_PANTRY" });
 
       if (isPantryAlreadyAdded) {
         const dishes = menus.map((menu) => ({ ...menu.dish, dish_availability: menu.quantity }));
         dispatch({ type: "ADD_TO_PANTRY", payload: dishes });
-      } else {
-        dispatch({ type: "CLEAR_PANTRY" });
       }
     })();
   }, [date, dispatch]);
@@ -65,19 +66,7 @@ export default function Pantry() {
           <h1 className="text-3xl">Pantry</h1>
 
           <div className="flex gap-2">
-            <Button
-              variant={"outline"}
-              onClick={() => {
-                if (state.isPantryAlreadyAdded) {
-                  // TODO: ADD CLEAR MENU FUNCTION
-                  router.refresh();
-                } else {
-                  dispatch({ type: "CLEAR_PANTRY" });
-                }
-              }}
-            >
-              Clear
-            </Button>
+            <ClearPantryBtn state={state} dispatch={dispatch} date={date} />
 
             <SubmitPantryBtn state={state} date={date!} />
           </div>
@@ -148,6 +137,68 @@ export default function Pantry() {
         </ScrollArea>
       </CardContent>
     </Card>
+  );
+}
+
+function ClearPantryBtn({
+  state,
+  dispatch,
+  date,
+}: {
+  state: IDashboardState;
+  dispatch: Dispatch<IDashboardAction>;
+  date?: Date;
+}) {
+  const router = useRouter();
+  const [isOpenDialog, setIsOpenDialog] = useState(false);
+
+  async function clearPantry() {
+    if (state.isPantryAlreadyAdded) {
+      if (!date) {
+        toast.error("Please set the date");
+        setIsOpenDialog(false);
+        return;
+      }
+
+      const menus = await removeMenuByDate(date);
+
+      if (menus.count > 0) {
+        toast.success("Pantry removed successfully!");
+        router.refresh();
+      }
+    } else {
+      dispatch({ type: "CLEAR_PANTRY" });
+    }
+    setIsOpenDialog(false);
+  }
+
+  return (
+    <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
+      <Button variant={"outline"} onClick={() => setIsOpenDialog(true)}>
+        Clear
+      </Button>
+
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Clear pantry</DialogTitle>
+          <DialogDescription>
+            Are you sure you want to clear the pantry?{" "}
+            {state.isPantryAlreadyAdded && (
+              <span className="font-bold">Any existing orders will also be deleted.</span>
+            )}
+          </DialogDescription>
+        </DialogHeader>
+
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant={"ghost"}>Cancel</Button>
+          </DialogClose>
+          <Button variant={"destructive"} onClick={clearPantry}>
+            Yes, Proceed
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

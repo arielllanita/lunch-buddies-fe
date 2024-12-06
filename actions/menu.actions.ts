@@ -17,7 +17,7 @@ export async function createMenu(data: Prisma.MenuCreateManyInput[]) {
   return menu;
 }
 
-export async function clearMenu(date: Date) {
+export async function removeMenuByDate(date: Date) {
   const menus = prisma.menu.deleteMany({
     where: { date: { gte: startOfDay(date), lte: endOfDay(date) } },
   });
