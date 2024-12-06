@@ -49,20 +49,22 @@ export default function ProfileDropDown({ profile: { user } }: { profile: Sessio
           )}
         </div>
       </DropdownMenuTrigger>
+
       <DropdownMenuContent>
         {isShowAdminMenu && (
-          <DropdownMenuItem>
-            <UserCog />
-            <Link href={"/admin/dashboard"} className="text-black">
-              Admin
+          <DropdownMenuItem asChild>
+            <Link href={"/admin/dashboard"} className="text-black cursor-pointer">
+              <UserCog />
+              <span>Admin</span>
             </Link>
           </DropdownMenuItem>
         )}
+
         {isInAdminRoutes ? (
-          <DropdownMenuItem className="cursor-pointer">
-            <Home />
-            <Link href={"/employee"} className="text-black">
-              Homepage
+          <DropdownMenuItem asChild>
+            <Link href={"/employee"} className="text-black cursor-pointer">
+              <Home />
+              <span>Homepage</span>
             </Link>
           </DropdownMenuItem>
         ) : (
@@ -71,6 +73,7 @@ export default function ProfileDropDown({ profile: { user } }: { profile: Sessio
             <span>My Orders</span>
           </DropdownMenuItem>
         )}
+
         <DropdownMenuItem onSelect={changePasswordHandler} className="cursor-pointer">
           <KeyRound />
           <span>Change Password</span>
