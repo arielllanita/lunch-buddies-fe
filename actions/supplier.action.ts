@@ -24,7 +24,7 @@ export async function updateSupplier(data: SupplierUpdate, id: string) {
   return supplier;
 }
 
-export async function removeSuppler(id: string) {
+export async function removeSupplier(id: string) {
   const supplier = await prisma.supplier.delete({ where: { id } });
   return supplier;
 }

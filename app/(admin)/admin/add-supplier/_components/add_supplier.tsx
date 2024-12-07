@@ -1,5 +1,6 @@
 "use client";
 
+import { createSupplier } from "@/actions/supplier.action";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -39,18 +40,14 @@ export default function AddSupplier() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const payload = {
-      supplier_name: values.supplier_name,
-      main_dish_free: values.isFreeMainDish,
-      side_dish_free: values.isFreeSideDish,
+      name: values.supplier_name,
+      isFreeMainDish: values.isFreeMainDish,
+      isFreeSideDish: values.isFreeSideDish,
     };
 
-    const res = await addSupplier(payload);
+    await createSupplier(payload);
 
-    if (!res?.id) {
-      throw new Error("Failed to add supplier");
-    }
-
-    toast.success(`${payload.supplier_name} has been successfully added on your supplier list`);
+    toast.success(`${payload.name} has been successfully added on your supplier list`);
     form.reset();
     setshowForm(false);
     router.refresh();

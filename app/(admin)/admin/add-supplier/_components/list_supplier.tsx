@@ -1,15 +1,8 @@
 "use client";
 
+import { updateSupplier, removeSupplier } from "@/actions/supplier.action";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import {
   Dialog,
   DialogClose,
@@ -20,25 +13,30 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { ISupplier, editSupplier, removeSupplier } from "@/services/supplier.service";
-import { Check, Save, SquarePen, Trash, X } from "lucide-react";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Supplier } from "@prisma/client";
+import { Check, Save, SquarePen, Trash, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { toast } from "sonner";
-import { usePaginator } from "@/hooks/use-paginator";
-import ClientPagination from "@/components/client_pagination";
 
-export default function ListSupplier({ suppliers }: { suppliers: ISupplier[] }) {
-  const itemsPerPage = 10;
-  const clientPaginator = usePaginator(suppliers, itemsPerPage);
-
+export default function ListSupplier({ suppliers }: { suppliers: Supplier[] }) {
   return (
-    <div>
-      <Card>
-        <CardContent className="p-4">
-          <h1 className="text-3xl mb-4">Food Suppliers</h1>
+    <Card>
+      <CardContent className="p-4">
+        <h1 className="text-3xl mb-4">Food Suppliers</h1>
+
+        <ScrollArea className="h-[30rem]">
           <Table>
             <TableHeader>
               <TableRow>
@@ -49,125 +47,105 @@ export default function ListSupplier({ suppliers }: { suppliers: ISupplier[] }) 
               </TableRow>
             </TableHeader>
             <TableBody>
-              {clientPaginator.itemsOnPage.map((supplier) => (
-                <CustomRow key={supplier.id} rowData={supplier} />
+              {suppliers.map((supplier) => (
+                <Row key={supplier.id} supplier={supplier} />
               ))}
             </TableBody>
           </Table>
-
-          <ClientPagination
-            {...clientPaginator}
-            arrayLength={suppliers.length}
-            itemsPerPage={itemsPerPage}
-          />
-        </CardContent>
-      </Card>
-    </div>
+        </ScrollArea>
+      </CardContent>
+    </Card>
   );
 }
 
-function CustomRow({ rowData }: { rowData: ISupplier }) {
-  const [table, setTable] = useState<{ isEditing: boolean; data?: ISupplier }>();
+function Row({ supplier }: { supplier: Supplier }) {
+  const [isEditMode, setIsEditMode] = useState(false);
 
-  const router = useRouter();
-  const isRowEditMode = table?.isEditing && table.data?.id == rowData.id;
-
-  const editMode = async (values: ISupplier) => {
-    setTable(() => ({ data: values, isEditing: true }));
-  };
-
-  const cancelEditMode = () => {
-    setTable({ data: undefined, isEditing: false });
-  };
-
-  const changeHandler = (
-    key: "supplier_name" | "main_dish_free" | "side_dish_free",
-    value: string | boolean
-  ) => setTable((v) => ({ isEditing: true, data: { ...v!.data, [key]: value } as ISupplier }));
-
-  const saveUpdate = async () => {
-    if (!table?.data) {
-      throw new Error("Invalid data");
-    }
-
-    const status = await editSupplier(table.data);
-
-    if (status !== 200) {
-      throw new Error("Server Error");
-    }
-
-    toast.success(`${table.data.supplier_name} has been updated successfully!`);
-    cancelEditMode();
-    router.refresh();
-  };
+  if (isEditMode) return <EditRow supplier={supplier} cancelEdit={() => setIsEditMode(false)} />;
 
   return (
     <TableRow>
-      {isRowEditMode ? (
-        <>
-          <TableCell>
-            <Input
-              defaultValue={rowData.supplier_name}
-              onChange={(v) => changeHandler("supplier_name", v.target.value)}
-            />
-          </TableCell>
-          <TableCell>
-            <Switch
-              defaultChecked={rowData.main_dish_free}
-              onCheckedChange={(checked) => changeHandler("main_dish_free", checked)}
-            />
-          </TableCell>
-          <TableCell>
-            <Switch
-              defaultChecked={rowData.side_dish_free}
-              onCheckedChange={(checked) => changeHandler("side_dish_free", checked)}
-            />
-          </TableCell>
-        </>
-      ) : (
-        <>
-          <TableCell>{rowData.supplier_name}</TableCell>
-          <TableCell>{rowData.main_dish_free ? <Check /> : <X />}</TableCell>
-          <TableCell>{rowData.side_dish_free ? <Check /> : <X />}</TableCell>
-        </>
-      )}
-      <TableCell className="w-[10%]">
+      <TableCell>{supplier.name}</TableCell>
+      <TableCell>{supplier.isFreeMainDish ? <Check /> : <X />}</TableCell>
+      <TableCell>{supplier.isFreeSideDish ? <Check /> : <X />}</TableCell>
+      <TableCell>
         <div className="flex justify-end gap-4">
-          <Button
-            variant={"outline"}
-            size={"icon"}
-            onClick={() => {
-              isRowEditMode ? saveUpdate() : editMode(rowData);
-            }}
-          >
-            {isRowEditMode ? <Save className="text-primary" /> : <SquarePen />}
+          <Button variant={"outline"} size={"icon"} onClick={() => setIsEditMode(true)}>
+            <SquarePen />
           </Button>
 
-          {isRowEditMode ? (
-            <Button variant={"outline"} size={"icon"} onClick={cancelEditMode}>
-              <X />
-            </Button>
-          ) : (
-            <DeleteSupplierBtn supplier={rowData} />
-          )}
+          <DeleteSupplierBtn supplier={supplier} />
         </div>
       </TableCell>
     </TableRow>
   );
 }
 
-function DeleteSupplierBtn({ supplier }: { supplier: ISupplier }) {
+function EditRow({ supplier, cancelEdit }: { supplier: Supplier; cancelEdit: () => void }) {
+  const router = useRouter();
+
+  const [rowData, setRowData] = useState({
+    name: supplier.name,
+    isFreeMainDish: supplier.isFreeMainDish,
+    isFreeSideDish: supplier.isFreeSideDish,
+  });
+
+  const saveUpdate = async () => {
+    if (!rowData.name) {
+      toast.error("Supplier name can't be empty");
+      return;
+    }
+
+    await updateSupplier(rowData, supplier.id);
+
+    toast.success(`${rowData.name} has been updated successfully!`);
+    cancelEdit();
+    router.refresh();
+  };
+
+  return (
+    <TableRow>
+      <TableCell>
+        <Input
+          value={rowData.name}
+          required
+          onChange={(e) => setRowData((v) => ({ ...v, name: e.target.value.trim() }))}
+        />
+      </TableCell>
+      <TableCell>
+        <Switch
+          checked={rowData.isFreeMainDish}
+          onCheckedChange={(checked) => setRowData((v) => ({ ...v, isFreeMainDish: checked }))}
+        />
+      </TableCell>
+      <TableCell>
+        <Switch
+          checked={rowData.isFreeSideDish}
+          onCheckedChange={(checked) => setRowData((v) => ({ ...v, isFreeSideDish: checked }))}
+        />
+      </TableCell>
+      <TableCell>
+        <div className="flex justify-end gap-4">
+          <Button variant={"outline"} size={"icon"} onClick={saveUpdate}>
+            <Save className="text-primary" />
+          </Button>
+
+          <Button variant={"outline"} size={"icon"} onClick={cancelEdit}>
+            <X />
+          </Button>
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+}
+
+function DeleteSupplierBtn({ supplier }: { supplier: Supplier }) {
   const router = useRouter();
 
   const removeHandler = async () => {
-    const statusCode = await removeSupplier(supplier.id!);
+    await removeSupplier(supplier.id);
 
-    // Request has been successfully completed
-    if (statusCode !== 204) {
-      throw new Error("Failed to delete resource");
-    }
-
-    toast.success(`${supplier.supplier_name} has been deleted`);
+    toast.success(`${supplier.name} has been deleted`);
     router.refresh();
   };
 
@@ -180,9 +158,12 @@ function DeleteSupplierBtn({ supplier }: { supplier: ISupplier }) {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Are you sure want to delete {supplier.supplier_name}?</DialogTitle>
+          <DialogTitle>Are you sure want to delete {supplier.name}?</DialogTitle>
           <DialogDescription>
-            This supplier will be deleted immediately. You can&apos;t undo this action.
+            <span>
+              This supplier and all of its dishes will be deleted immediately. You can&apos;t undo
+              this action.
+            </span>
           </DialogDescription>
         </DialogHeader>
 

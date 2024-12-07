@@ -1,23 +1,26 @@
 import type { Supplier, Dish } from "@prisma/client";
 import { uniqBy } from "lodash";
 
+export type IDashboardAction = {
+  type:
+    | "ADD_DISH"
+    | "CLEAR_DISH"
+    | "ADD_TO_PANTRY"
+    | "EDIT_PANTRY"
+    | "REMOVE_FROM_PANTRY"
+    | "CLEAR_PANTRY"
+    | "IS_PANTRY_CLOSE"
+    | "ADD_SUPPLIER"
+    | "TRIGGER_FETCH";
+  payload?: any;
+};
+
 export type IDashboardState = {
   dishes: Dish[];
   suppliers: Supplier[];
   pantry: (Dish & { dish_availability: number })[];
   isPantryAlreadyAdded: boolean;
-};
-
-export type IDashboardAction = {
-  type:
-    | "ADD_DISH"
-    | "ADD_TO_PANTRY"
-    | "EDIT_PANTRY"
-    | "REMOVE_FROM_PANTRY"
-    | "CLEAR_PANTRY"
-    | "ADD_SUPPLIER"
-    | "IS_PANTRY_CLOSE";
-  payload?: any;
+  triggerFetch: number;
 };
 
 export const initState: IDashboardState = {
@@ -25,12 +28,16 @@ export const initState: IDashboardState = {
   suppliers: [],
   pantry: [],
   isPantryAlreadyAdded: false,
+  triggerFetch: 0,
 };
 
 export function reducer(state: IDashboardState, action: IDashboardAction) {
   switch (action.type) {
     case "ADD_DISH": {
       return { ...state, dishes: action.payload };
+    }
+    case "CLEAR_DISH": {
+      return { ...state, dishes: [] };
     }
     case "ADD_SUPPLIER": {
       const suppliers = uniqBy(state.suppliers.concat(action.payload), "id");
@@ -57,6 +64,9 @@ export function reducer(state: IDashboardState, action: IDashboardAction) {
     }
     case "IS_PANTRY_CLOSE": {
       return { ...state, isPantryAlreadyAdded: action.payload };
+    }
+    case "TRIGGER_FETCH": {
+      return { ...state, triggerFetch: state.triggerFetch + 1 };
     }
 
     default:

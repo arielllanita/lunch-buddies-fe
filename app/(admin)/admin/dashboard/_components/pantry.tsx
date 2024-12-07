@@ -12,7 +12,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -25,18 +24,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { capitalCase } from "change-case";
+import { endOfDay } from "date-fns/endOfDay";
+import { startOfDay } from "date-fns/startOfDay";
 import { Clock10, Minus, Plus } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { Dispatch, useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { DashboardContext } from "../_context/dashboard.context";
 import { IDashboardAction, IDashboardState } from "../_context/dashboard.reducer";
-import { startOfDay } from "date-fns/startOfDay";
-import { endOfDay } from "date-fns/endOfDay";
-import { capitalCase } from "change-case";
 
 export default function Pantry() {
-  const router = useRouter();
   const { state, dispatch } = useContext(DashboardContext);
 
   const [date, setDate] = useState<Date | undefined>(new Date());
@@ -57,7 +54,7 @@ export default function Pantry() {
         dispatch({ type: "ADD_TO_PANTRY", payload: dishes });
       }
     })();
-  }, [date, dispatch]);
+  }, [date, dispatch, state.triggerFetch]);
 
   return (
     <Card>
@@ -67,8 +64,7 @@ export default function Pantry() {
 
           <div className="flex gap-2">
             <ClearPantryBtn state={state} dispatch={dispatch} date={date} />
-
-            <SubmitPantryBtn state={state} date={date!} />
+            <SubmitPantryBtn state={state} dispatch={dispatch} date={date!} />
           </div>
         </div>
 
@@ -149,7 +145,6 @@ function ClearPantryBtn({
   dispatch: Dispatch<IDashboardAction>;
   date?: Date;
 }) {
-  const router = useRouter();
   const [isOpenDialog, setIsOpenDialog] = useState(false);
 
   async function clearPantry() {
@@ -164,7 +159,7 @@ function ClearPantryBtn({
 
       if (menus.count > 0) {
         toast.success("Pantry removed successfully!");
-        router.refresh();
+        dispatch({ type: "TRIGGER_FETCH" });
       }
     } else {
       dispatch({ type: "CLEAR_PANTRY" });
@@ -202,8 +197,15 @@ function ClearPantryBtn({
   );
 }
 
-function SubmitPantryBtn({ state, date }: { state: IDashboardState; date: Date }) {
-  const router = useRouter();
+function SubmitPantryBtn({
+  state,
+  date,
+  dispatch,
+}: {
+  state: IDashboardState;
+  dispatch: Dispatch<IDashboardAction>;
+  date: Date;
+}) {
   const [isOpenDialog, setIsOpenDialog] = useState(false);
 
   async function submitPantry() {
@@ -220,7 +222,7 @@ function SubmitPantryBtn({ state, date }: { state: IDashboardState; date: Date }
     if (menus.count > 0) {
       toast.success("Pantry added successfully!");
       setIsOpenDialog(false);
-      router.refresh();
+      dispatch({ type: "TRIGGER_FETCH" });
     }
   }
 

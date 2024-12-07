@@ -19,7 +19,7 @@ import {
 import { Session } from "next-auth";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 export default function ProfileDropDown({ profile: { user } }: { profile: Session }) {
@@ -36,7 +36,7 @@ export default function ProfileDropDown({ profile: { user } }: { profile: Sessio
   const signOutHandler = () => signOut({ callbackUrl: "/" });
 
   return (
-    <DropdownMenu onOpenChange={setIsDropdownOpen}>
+    <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
       <DropdownMenuTrigger asChild className="border-none">
         <div className="text-white flex cursor-pointer">
           <span>
