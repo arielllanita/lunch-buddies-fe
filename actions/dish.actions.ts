@@ -4,8 +4,12 @@
 
 import prisma from "@/prisma/client";
 import { Prisma } from "@prisma/client";
+import { DefaultArgs } from "@prisma/client/runtime/library";
 
-export async function getDish(options?: Prisma.DishWhereInput) {
-  const dishes = await prisma.dish.findMany({ where: options });
+export async function getDish(
+  where?: Prisma.DishWhereInput,
+  include?: Prisma.DishInclude<DefaultArgs>
+) {
+  const dishes = await prisma.dish.findMany({ where, include });
   return dishes;
 }

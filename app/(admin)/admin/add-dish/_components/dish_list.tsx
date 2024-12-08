@@ -24,37 +24,14 @@ import {
 } from "@/components/ui/table";
 import { usePaginator } from "@/hooks/use-paginator";
 import { IDishType, deleteDish, editDishPrice, getDishPriceById } from "@/services/dish.service";
+import { Dish } from "@prisma/client";
+import { format } from "date-fns/format";
 import { Save, SquarePen, Trash, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
-export interface DishList {
-  id: string;
-  price: number;
-  is_active: boolean;
-  dish_id: DishID;
-  dish_name: null;
-  date: Date;
-}
-
-export interface DishID {
-  id: string;
-  dish_name: string;
-  dish_type: string;
-  img_url: string;
-  supplier: Supplier;
-  created_at: Date;
-}
-
-export interface Supplier {
-  supplier_name: string;
-  main_dish_free: boolean;
-  side_dish_free: boolean;
-  id: string;
-}
-
-export default function DishList({ dishes }: { dishes: IDishType[] }) {
+export default function DishList({ dishes }: { dishes: Dish[] }) {
   const itemsPerPage = 10;
   const clientPaginator = usePaginator(dishes, itemsPerPage);
 
@@ -90,20 +67,20 @@ export default function DishList({ dishes }: { dishes: IDishType[] }) {
   );
 }
 
-function CustomRow({ dish }: { dish: IDishType }) {
+function CustomRow({ dish }: { dish: Dish }) {
   const [rowState, setRowState] = useState<{ isEditing: boolean }>();
 
-  if (rowState?.isEditing) {
-    return <EditingRow rowData={dish} cancelEditing={() => setRowState({ isEditing: false })} />;
-  }
+  // if (rowState?.isEditing) {
+  //   return <EditingRow rowData={dish} cancelEditing={() => setRowState({ isEditing: false })} />;
+  // }
 
   return (
     <TableRow>
-      <TableCell>{dish.dish_id.dish_name}</TableCell>
-      <TableCell>{dish.dish_id.dish_type}</TableCell>
-      <TableCell>{dish.dish_id.supplier.supplier_name}</TableCell>
+      <TableCell>{dish.name}</TableCell>
+      <TableCell>{dish.type}</TableCell>
+      <TableCell>{dish.supplierId}</TableCell>
       <TableCell>&#x20B1;{dish.price.toFixed(2)}</TableCell>
-      <TableCell>{dish.dish_id.created_at.split("T")[0]}</TableCell>
+      <TableCell>{format(dish.createdAt, "yyyy-MM-dd")}</TableCell>
       <TableCell>
         <div className="flex justify-end gap-4">
           <Button
@@ -114,7 +91,7 @@ function CustomRow({ dish }: { dish: IDishType }) {
             <SquarePen />
           </Button>
 
-          <DeleteDishBtn dish={dish} />
+          {/* <DeleteDishBtn dish={dish} /> */}
         </div>
       </TableCell>
     </TableRow>
