@@ -1,5 +1,6 @@
 "use client";
 
+import { createDish } from "@/actions/dish.actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -18,9 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { addDish, addDishPrice } from "@/services/dish.service";
-import { ISupplier } from "@/services/supplier.service";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Supplier } from "@prisma/client";
 import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
@@ -33,11 +33,14 @@ const formSchema = z.object({
   dish_name: z.string().min(1, { message: "This is required" }),
   dish_type: z.string({ required_error: "Please select dish type" }),
   supplier: z.string({ required_error: "Please select a supplier" }),
-  price: z.coerce.number().int().gt(0, { message: "Must be greater than zero" }),
+  // See https://stackoverflow.com/a/75291616/14047061
+  price: z.coerce.number().refine((x) => Math.abs(x * 100 - Math.round(x * 100)) < Number.EPSILON, {
+    message: "Number must be within floating-point precision.",
+  }),
   tags: z.string().min(1, { message: "This is required" }),
 });
 
-export default function AddDish({ suppliers }: { suppliers: ISupplier[] }) {
+export default function AddDish({ suppliers }: { suppliers: Supplier[] }) {
   const [showForm, setshowForm] = useState(false);
 
   const imgUploadRef = useRef<ImgUploadRef>(null);
@@ -55,24 +58,15 @@ export default function AddDish({ suppliers }: { suppliers: ISupplier[] }) {
       return;
     }
 
-    const dishFormData = new FormData();
-    dishFormData.append("file", imgUploadRef.current.imgFile);
-    dishFormData.append("dish_name", values.dish_name);
-    dishFormData.append("dish_type", values.dish_type);
-    dishFormData.append("supplier", values.supplier);
-    // TODO: ADD 'tags' to form data and change schema in backend
+    const formData = new FormData();
+    formData.append("imgFile", imgUploadRef.current.imgFile);
+    formData.append("name", values.dish_name);
+    formData.append("type", values.dish_type);
+    formData.append("supplierId", values.supplier);
+    formData.append("tags", values.tags);
+    formData.append("price", `${values.price}`);
 
-    const res = await addDish(dishFormData);
-    if (!res?.id) {
-      toast.error("Failed to add supplier");
-      return;
-    }
-
-    const code = await addDishPrice({ dish_id: res.id, price: values.price });
-    if (code !== 201) {
-      toast.error("Failed to add dish price");
-      return;
-    }
+    await createDish(formData);
 
     toast.success(`${values.dish_name} has been successfully added on your dish list`);
     form.reset();
@@ -134,9 +128,9 @@ export default function AddDish({ suppliers }: { suppliers: ISupplier[] }) {
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="Main Dish">Main Dish</SelectItem>
-                                <SelectItem value="Side Dish">Side Dish</SelectItem>
-                                <SelectItem value="Extra">Extra Order</SelectItem>
+                                <SelectItem value="MAIN">Main Dish</SelectItem>
+                                <SelectItem value="SIDE">Side Dish</SelectItem>
+                                <SelectItem value="EXTRA">Extra Order</SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -160,8 +154,8 @@ export default function AddDish({ suppliers }: { suppliers: ISupplier[] }) {
                               </FormControl>
                               <SelectContent>
                                 {suppliers.map((s) => (
-                                  <SelectItem key={s.id} value={s.id!}>
-                                    {s.supplier_name}
+                                  <SelectItem key={s.id} value={s.id}>
+                                    {s.name}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -178,7 +172,7 @@ export default function AddDish({ suppliers }: { suppliers: ISupplier[] }) {
                           <FormItem className="flex-1">
                             <FormLabel>Price</FormLabel>
                             <FormControl>
-                              <Input type="number" placeholder="Price" {...field} />
+                              <Input type="number" step={"0.01"} placeholder="Price" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>

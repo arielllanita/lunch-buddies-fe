@@ -1,5 +1,6 @@
 "use client";
 
+import { DishWIthSupplier, updateDish, deleteDish } from "@/actions/dish.actions";
 import ClientPagination from "@/components/client_pagination";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -23,15 +24,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { usePaginator } from "@/hooks/use-paginator";
-import { IDishType, deleteDish, editDishPrice, getDishPriceById } from "@/services/dish.service";
-import { Dish } from "@prisma/client";
+import { capitalCase } from "change-case";
 import { format } from "date-fns/format";
 import { Save, SquarePen, Trash, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
-export default function DishList({ dishes }: { dishes: Dish[] }) {
+export default function DishList({ dishes }: { dishes: DishWIthSupplier[] }) {
   const itemsPerPage = 10;
   const clientPaginator = usePaginator(dishes, itemsPerPage);
 
@@ -52,7 +52,7 @@ export default function DishList({ dishes }: { dishes: Dish[] }) {
           </TableHeader>
           <TableBody>
             {clientPaginator.itemsOnPage.map((dish) => (
-              <CustomRow key={dish.id} dish={dish} />
+              <Row key={dish.id} dish={dish} />
             ))}
           </TableBody>
         </Table>
@@ -67,64 +67,55 @@ export default function DishList({ dishes }: { dishes: Dish[] }) {
   );
 }
 
-function CustomRow({ dish }: { dish: Dish }) {
-  const [rowState, setRowState] = useState<{ isEditing: boolean }>();
+function Row({ dish }: { dish: DishWIthSupplier }) {
+  const [isEditMode, setIsEditMode] = useState(false);
 
-  // if (rowState?.isEditing) {
-  //   return <EditingRow rowData={dish} cancelEditing={() => setRowState({ isEditing: false })} />;
-  // }
+  if (isEditMode) {
+    return <EditingRow dish={dish} cancelEditing={() => setIsEditMode(false)} />;
+  }
 
   return (
     <TableRow>
       <TableCell>{dish.name}</TableCell>
-      <TableCell>{dish.type}</TableCell>
-      <TableCell>{dish.supplierId}</TableCell>
+      <TableCell>{capitalCase(`${dish.type} Dish`)}</TableCell>
+      <TableCell>{dish.supplier.name}</TableCell>
       <TableCell>&#x20B1;{dish.price.toFixed(2)}</TableCell>
       <TableCell>{format(dish.createdAt, "yyyy-MM-dd")}</TableCell>
       <TableCell>
         <div className="flex justify-end gap-4">
-          <Button
-            variant={"outline"}
-            size={"icon"}
-            onClick={() => setRowState({ isEditing: true })}
-          >
+          <Button variant={"outline"} size={"icon"} onClick={() => setIsEditMode(true)}>
             <SquarePen />
           </Button>
 
-          {/* <DeleteDishBtn dish={dish} /> */}
+          <DeleteDishBtn dish={dish} />
         </div>
       </TableCell>
     </TableRow>
   );
 }
 
-function EditingRow({ rowData, cancelEditing }: { rowData: IDishType; cancelEditing: () => void }) {
+function EditingRow({
+  dish,
+  cancelEditing,
+}: {
+  dish: DishWIthSupplier;
+  cancelEditing: () => void;
+}) {
   const router = useRouter();
 
-  const [updatedData, setUpdatedData] = useState({
-    dish_name: rowData.dish_id.dish_name,
-    price: rowData.price,
+  const [dishUpdateData, setDishUpdateData] = useState({
+    name: dish.name,
+    price: dish.price,
   });
 
-  const changeHandler = (key: "dish_name" | "price", value: string) => {
-    setUpdatedData({ ...updatedData, [key]: value });
+  const changeHandler = (key: "name" | "price", value: string) => {
+    setDishUpdateData((x) => ({ ...x, [key]: value }));
   };
 
   const saveHandler = async () => {
-    const payload = JSON.stringify({
-      id: null,
-      is_active: true,
-      dish_id: rowData.dish_id.id,
-      ...updatedData,
-    });
+    await updateDish(dish.id, { name: dishUpdateData.name, price: Number(dishUpdateData.price) });
 
-    const code = await editDishPrice(rowData.id, payload);
-    if (code !== 200) {
-      toast.error(`Failed to update ${rowData.dish_id.dish_name}`);
-      return;
-    }
-
-    toast.success(`${rowData.dish_id.dish_name} has been updated successfully!`);
+    toast.success(`${dish.name} has been updated successfully!`);
     cancelEditing();
     router.refresh();
   };
@@ -134,22 +125,23 @@ function EditingRow({ rowData, cancelEditing }: { rowData: IDishType; cancelEdit
       <TableCell>
         <Input
           type="text"
-          value={updatedData.dish_name}
-          onChange={(e) => changeHandler("dish_name", e.target.value)}
+          value={dishUpdateData.name}
+          onChange={(e) => changeHandler("name", e.target.value)}
           required
         />
       </TableCell>
-      <TableCell>{rowData.dish_id.dish_type}</TableCell>
-      <TableCell>{rowData.dish_id.supplier.supplier_name}</TableCell>
+      <TableCell>{capitalCase(`${dish.type} Dish`)}</TableCell>
+      <TableCell>{dish.supplier.name}</TableCell>
       <TableCell>
         <Input
           type="number"
-          value={updatedData.price}
+          value={dishUpdateData.price}
+          step={'0.01'}
           onChange={(e) => changeHandler("price", e.target.value)}
           required
         />
       </TableCell>
-      <TableCell>{rowData.dish_id.created_at.split("T")[0]}</TableCell>
+      <TableCell>{format(dish.createdAt, "yyyy-MM-dd")}</TableCell>
 
       <TableCell>
         <div className="flex justify-end gap-4">
@@ -166,23 +158,13 @@ function EditingRow({ rowData, cancelEditing }: { rowData: IDishType; cancelEdit
   );
 }
 
-function DeleteDishBtn({ dish }: { dish: IDishType }) {
+function DeleteDishBtn({ dish }: { dish: DishWIthSupplier }) {
   const router = useRouter();
 
   const removeHandler = async () => {
-    const res = await getDishPriceById(dish.id);
-    if (!res?.dish_id?.id) {
-      toast.error("Failed to delete resource1");
-      return;
-    }
+    await deleteDish(dish.id);
 
-    const statusCode = await deleteDish(res.dish_id.id);
-    if (statusCode !== 204) {
-      toast.error("Failed to delete resource");
-      return;
-    }
-
-    toast.success(`${dish.dish_id.dish_name} has been deleted`);
+    toast.success(`${dish.name} has been deleted`);
     router.refresh();
   };
 
@@ -195,9 +177,12 @@ function DeleteDishBtn({ dish }: { dish: IDishType }) {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Are you sure want to delete {dish.dish_id.dish_name}?</DialogTitle>
+          <DialogTitle>Are you sure want to delete {dish.name}?</DialogTitle>
           <DialogDescription>
-            This dish will be deleted immediately. You can&apos;t undo this action.
+            <span>
+              This dish and all of its menus will be deleted immediately. You can&apos;t undo this
+              action.
+            </span>
           </DialogDescription>
         </DialogHeader>
 
