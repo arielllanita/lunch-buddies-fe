@@ -1,21 +1,23 @@
+import { getMenus } from "@/actions/menu.actions";
 import { auth_options } from "@/lib/auth_options";
 import prisma from "@/prisma/client";
+import { Prisma } from "@prisma/client";
+import { endOfDay } from "date-fns/endOfDay";
+import { startOfDay } from "date-fns/startOfDay";
 import { getServerSession } from "next-auth";
+import DishContainer from "./_components/dish_container";
+
+export type MenuToday = Prisma.MenuGetPayload<{ include: { dish: true } }>;
 
 export default async function Employee() {
   const session = await getServerSession(auth_options);
 
-  // const mainDish = await getDish(undefined, "main_dish");
-  // const sideDish = await getDish(undefined, "side_dish");
-  // const extraDish = await getDish(undefined, "extra");
+  const dateToday = new Date();
 
-  const suppliers = await prisma.supplier.findMany({
+  const menu: MenuToday[] = await prisma.menu.findMany({
+    where: { date: { gte: startOfDay(dateToday), lte: endOfDay(dateToday) } },
     include: { dish: true },
   });
-
-  const mainDish: string[] = [];
-  const sideDish: string[] = [];
-  const extraDish: string[] = [];
 
   return (
     <main className="px-28 py-10">
@@ -25,27 +27,24 @@ export default async function Employee() {
       </div>
 
       <div className="flex flex-col gap-4">
-        
-
         <div>
-          <h2 className="text-3xl font-bold">Suppliers</h2>
-          <pre> {JSON.stringify(suppliers, null, 2)} </pre>
-        </div>
-
-        {/* <div>
           <h2 className="text-3xl font-bold">Main Dish</h2>
-          <pre> {JSON.stringify(mainDish, null, 2)} </pre>
+          <p className="text-primary">with Rice</p>
+
+          {menu
+            .filter((x) => x.dish.type == "MAIN")
+            .map((menu) => (
+              <DishContainer key={menu.id} menu={menu} />
+            ))}
         </div>
 
         <div>
           <h2 className="text-3xl font-bold">Side Dish</h2>
-          <pre> {JSON.stringify(sideDish, null, 2)} </pre>
         </div>
 
         <div>
           <h2 className="text-3xl font-bold">Extra Dish</h2>
-          <pre> {JSON.stringify(extraDish, null, 2)} </pre>
-        </div> */}
+        </div>
       </div>
     </main>
   );
