@@ -9,7 +9,7 @@ export default async function Home() {
   const session = await getServerSession(auth_options);
 
   if (session) {
-    redirect("/employee");
+    redirect("/homepage");
   }
 
   return (

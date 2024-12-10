@@ -12,4 +12,4 @@ export default withAuth({
   },
 });
 
-export const config = { matcher: ["/admin/:path*", "/employee/:path*"] };
+export const config = { matcher: ["/admin/:path*", "/homepage/:path*"] };

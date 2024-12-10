@@ -52,7 +52,7 @@ export default function LoginForm() {
     }
 
     toast.success("You are signed in!");
-    router.replace("/employee");
+    router.replace("/homepage");
   }
 
   return (

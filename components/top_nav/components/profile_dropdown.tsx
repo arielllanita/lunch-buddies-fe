@@ -62,7 +62,7 @@ export default function ProfileDropDown({ profile: { user } }: { profile: Sessio
 
         {isInAdminRoutes ? (
           <DropdownMenuItem asChild>
-            <Link href={"/employee"} className="text-black cursor-pointer">
+            <Link href={"/homepage"} className="text-black cursor-pointer">
               <Home />
               <span>Homepage</span>
             </Link>
