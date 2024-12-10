@@ -1,51 +1,74 @@
-import { getMenus } from "@/actions/menu.actions";
 import { auth_options } from "@/lib/auth_options";
 import prisma from "@/prisma/client";
-import { Prisma } from "@prisma/client";
 import { endOfDay } from "date-fns/endOfDay";
 import { startOfDay } from "date-fns/startOfDay";
 import { getServerSession } from "next-auth";
 import DishContainer from "./_components/dish_container";
-
-export type MenuToday = Prisma.MenuGetPayload<{ include: { dish: true } }>;
+import { cloneDeep, flatMap, times } from "lodash";
 
 export default async function Employee() {
   const session = await getServerSession(auth_options);
-
   const dateToday = new Date();
 
-  const menu: MenuToday[] = await prisma.menu.findMany({
+  const menu = await prisma.menu.findMany({
     where: { date: { gte: startOfDay(dateToday), lte: endOfDay(dateToday) } },
-    include: { dish: true },
+    include: { dish: { include: { supplier: true } } },
   });
 
+  // const mock = flatMap(times(8, () => cloneDeep(menu)));
+  // const mainDish = mock.filter((menu) => menu.dish.type == "MAIN");
+  // const sideDish = mock.filter((menu) => menu.dish.type == "SIDE");
+  // const extraDish = mock.filter((menu) => menu.dish.type == "EXTRA");
+
+  const mainDish = menu.filter((x) => x.dish.type == "MAIN");
+  const sideDish = menu.filter((x) => x.dish.type == "SIDE");
+  const extraDish = menu.filter((x) => x.dish.type == "EXTRA");
+
   return (
-    <main className="px-28 py-10">
-      <div className="mb-14">
+    <>
+      <div className="px-16 py-10">
         <h1 className="text-4xl">Good morning, {session?.user.first_name}!</h1>
         <p className="text-lg">What&apos;s your food mood today?</p>
       </div>
 
-      <div className="flex flex-col gap-4">
-        <div>
+      {mainDish.length > 0 && (
+        <div className="px-16 py-5">
           <h2 className="text-3xl font-bold">Main Dish</h2>
-          <p className="text-primary">with Rice</p>
+          <p className="text-primary mb-5">with Rice</p>
 
-          {menu
-            .filter((x) => x.dish.type == "MAIN")
-            .map((menu) => (
-              <DishContainer key={menu.id} menu={menu} />
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+            {mainDish.map((menu, i) => (
+              <DishContainer key={i} menu={menu} />
             ))}
+          </div>
         </div>
+      )}
 
-        <div>
+      {sideDish.length > 0 && (
+        <div className="px-16 py-5 bg-slate-50">
           <h2 className="text-3xl font-bold">Side Dish</h2>
-        </div>
+          <p className="text-primary mb-5">{sideDish.length} meal/s listed</p>
 
-        <div>
-          <h2 className="text-3xl font-bold">Extra Dish</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+            {sideDish.map((menu, i) => (
+              <DishContainer key={i} menu={menu} />
+            ))}
+          </div>
         </div>
-      </div>
-    </main>
+      )}
+
+      {extraDish.length > 0 && (
+        <div className="px-16 pt-5 pb-14">
+          <h2 className="text-3xl font-bold">Extra Dish</h2>
+          <p className="text-primary mb-5">{extraDish.length} meal/s listed</p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+            {extraDish.map((menu, i) => (
+              <DishContainer key={i} menu={menu} />
+            ))}
+          </div>
+        </div>
+      )}
+    </>
   );
 }

@@ -9,7 +9,7 @@ export default async function TopNav() {
   const session = await getServerSession(auth_options);
 
   return (
-    <div className="bg-black px-6 pt-4 pb-3 flex justify-between">
+    <header className="bg-black h-16 px-6 pt-4 pb-3 flex justify-between">
       <Logo />
 
       <div className="flex gap-x-3">
@@ -17,6 +17,6 @@ export default async function TopNav() {
         <ProfileDropDown profile={session!} />
         <ShoppingCart className="text-primary" />
       </div>
-    </div>
+    </header>
   );
 }
