@@ -22,7 +22,7 @@ export default function DishContainer({ menu: { dish, quantity } }: { menu: Menu
   return (
     <div
       className={cn(
-        "rounded border overflow-hidden",
+        "rounded-lg border overflow-hidden",
         isOutOfStock && "grayscale cursor-not-allowed"
       )}
     >
@@ -43,19 +43,19 @@ export default function DishContainer({ menu: { dish, quantity } }: { menu: Menu
           ))}
         </div>
 
-        {isOutOfStock ? <SoldOutBanner /> : <AddToCartBtn />}
+        <div className="z-40">{isOutOfStock ? <SoldOutBanner /> : <AddToCartBtn />}</div>
       </div>
 
       <div className="bg-black p-3">
         <h2 className="text-white font-bold text-lg">{dish.name}</h2>
 
         <div className="flex items-center justify-between gap-1 mt-3">
-          <p className="text-primary font-bold text-base lg:text-lg">
+          <p className={cn("text-primary font-bold text-sm 2xl:text-lg", "line-through")}>
             &#8369;{dish.price.toFixed(2)}
           </p>
 
           {isFreeFirstOrder && (
-            <p className="text-orange-500 italic font-bold text-base lg:text-lg">
+            <p className="text-orange-500 italic font-bold text-sm 2xl:text-lg">
               FREE for first order
             </p>
           )}
@@ -80,7 +80,6 @@ export default function DishContainer({ menu: { dish, quantity } }: { menu: Menu
 
 function AddToCartBtn({ onAddToCart = () => {} }) {
   return (
-    // <div className="w-fit hidden group-hover:block transition ease-in-out duration-1000">
     <div className="w-fit opacity-0 invisible transition-opacity duration-300 ease-in-out group-hover:opacity-100 group-hover:visible">
       <Button size={"icon"} className="rounded-full" onClick={onAddToCart}>
         <Plus />

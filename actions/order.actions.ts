@@ -5,9 +5,7 @@
 import prisma from "@/prisma/client";
 import { Prisma } from "@prisma/client";
 
-type OrderCreate = Prisma.Args<typeof prisma.order, "create">["data"];
-
-export async function createSupplier(payload: OrderCreate) {
-  const order = await prisma.order.create({ data: payload });
+export async function createOrder(payload: Prisma.OrderCreateManyInput[]) {
+  const order = await prisma.order.createMany({ data: payload });
   return order;
 }

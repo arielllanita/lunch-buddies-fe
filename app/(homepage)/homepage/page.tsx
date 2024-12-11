@@ -4,7 +4,7 @@ import { endOfDay } from "date-fns/endOfDay";
 import { startOfDay } from "date-fns/startOfDay";
 import { getServerSession } from "next-auth";
 import DishContainer from "./_components/dish_container";
-import { cloneDeep, flatMap, times } from "lodash";
+import { HomepageProvider } from "./_context/homepage.context";
 
 export default async function Employee() {
   const session = await getServerSession(auth_options);
@@ -15,17 +15,12 @@ export default async function Employee() {
     include: { dish: { include: { supplier: true } } },
   });
 
-  // const mock = flatMap(times(8, () => cloneDeep(menu)));
-  // const mainDish = mock.filter((menu) => menu.dish.type == "MAIN");
-  // const sideDish = mock.filter((menu) => menu.dish.type == "SIDE");
-  // const extraDish = mock.filter((menu) => menu.dish.type == "EXTRA");
-
   const mainDish = menu.filter((x) => x.dish.type == "MAIN");
   const sideDish = menu.filter((x) => x.dish.type == "SIDE");
   const extraDish = menu.filter((x) => x.dish.type == "EXTRA");
 
   return (
-    <>
+    <HomepageProvider>
       <div className="px-16 py-10">
         <h1 className="text-4xl">Good morning, {session?.user.first_name}!</h1>
         <p className="text-lg">What&apos;s your food mood today?</p>
@@ -69,6 +64,6 @@ export default async function Employee() {
           </div>
         </div>
       )}
-    </>
+    </HomepageProvider>
   );
 }

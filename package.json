@@ -1,15 +1,15 @@
 {
-  "name": "lunch-buddies-frontend",
+  "name": "isi-lunch-buddies",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' server.ts",
     "build": "next build",
-    "start": "next start",
+    "start": "cross-env NODE_ENV=production ts-node --compiler-options '{\"module\":\"CommonJS\"}' server.ts",
     "lint": "next lint"
   },
   "prisma": {
-    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+    "seed": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
