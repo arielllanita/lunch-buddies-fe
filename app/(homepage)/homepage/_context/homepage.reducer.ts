@@ -1,20 +1,26 @@
-import { Order, Menu } from "@prisma/client";
+import { Order, Menu, Prisma } from "@prisma/client";
+
+export type MenuToday = Prisma.MenuGetPayload<{
+  include: { _count: { select: { order: true } }; dish: { include: { supplier: true } } };
+}>;
 
 export type IHompageAction =
   | { type: "ADD_TO_CART" | "EDIT_CART"; payload: Order }
   | { type: "REMOVE_TO_CART"; payload: string }
-  | { type: "ADD_MENU"; payload: Menu[] };
+  | { type: "FETCH_MENU_TODAY"; payload: MenuToday[] };
 
 export type IHomepageState = {
   cart: Order[];
-  menus: Menu[];
+  orders: Order[];
+  menu: MenuToday[];
   isMainDishInCart: boolean;
   isSideDishInCart: boolean;
 };
 
 export const initState: IHomepageState = {
   cart: [],
-  menus: [],
+  orders: [],
+  menu: [],
   isMainDishInCart: false,
   isSideDishInCart: false,
 };
@@ -33,6 +39,9 @@ export function reducer(state: IHomepageState, action: IHompageAction): IHomepag
       const { id } = action.payload;
       const cart = state.cart.map((c) => (c.id === id ? action.payload : c));
       return { ...state, cart };
+    }
+    case "FETCH_MENU_TODAY": {
+      return { ...state, menu: action.payload };
     }
 
     default:

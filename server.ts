@@ -43,7 +43,7 @@ async function getMenuToday() {
   const today = new Date();
   const menus = await prisma.menu.findMany({
     where: { date: { gte: startOfDay(today), lte: endOfDay(today) } },
-    include: { dish: { include: { supplier: true } } },
+    include: { _count: { select: { order: true } }, dish: { include: { supplier: true } } },
   });
 
   return menus;

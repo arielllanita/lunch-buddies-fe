@@ -3,26 +3,23 @@
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
-import { Prisma } from "@prisma/client";
 import { sentenceCase } from "change-case";
 import { Plus } from "lucide-react";
 import React from "react";
+import { MenuToday } from "../_context/homepage.reducer";
 
-type MenuToday = Prisma.MenuGetPayload<{ include: { dish: { include: { supplier: true } } } }>;
-
-export default function DishContainer({ menu: { dish, quantity } }: { menu: MenuToday }) {
+export default function DishContainer({ menu: { dish, quantity, _count } }: { menu: MenuToday }) {
   // TODO: ADJUST THIS IF USER HAS ALREADY ORDERED
   const isFreeFirstOrder =
     (dish.supplier.isFreeMainDish && dish.type == "MAIN") ||
     (dish.supplier.isFreeSideDish && dish.type == "SIDE");
 
-  // const isOutOfStock = dish.type == "MAIN";
-  const isOutOfStock = false;
+  const isOutOfStock = _count.order === quantity;
 
   return (
     <div
       className={cn(
-        "rounded-lg border overflow-hidden",
+        "rounded-lg border border-black overflow-hidden",
         isOutOfStock && "grayscale cursor-not-allowed"
       )}
     >
@@ -66,7 +63,11 @@ export default function DishContainer({ menu: { dish, quantity } }: { menu: Menu
           </div>
         </div>
 
-        <Progress value={quantity * quantity} className="h-2 w-[70%] mt-2 mb-1" />
+        <Progress
+          value={quantity - _count.order}
+          max={quantity}
+          className="h-2 w-[70%] mt-2 mb-1"
+        />
 
         <div className="flex items-center justify-between">
           <p className="text-white text-xs">{quantity} meal/s left</p>

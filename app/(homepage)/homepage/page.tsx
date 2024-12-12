@@ -1,32 +1,33 @@
 import { auth_options } from "@/lib/auth_options";
-import prisma from "@/prisma/client";
-import { endOfDay } from "date-fns/endOfDay";
-import { startOfDay } from "date-fns/startOfDay";
 import { getServerSession } from "next-auth";
-import DishContainer from "./_components/dish_container";
-import { HomepageProvider } from "./_context/homepage.context";
+import HomepageWrapper from "./_components/homepage.wrapper";
+import { HomepageContext } from "./_context/homepage.context";
 
 export default async function Employee() {
   const session = await getServerSession(auth_options);
-  const dateToday = new Date();
 
-  const menu = await prisma.menu.findMany({
-    where: { date: { gte: startOfDay(dateToday), lte: endOfDay(dateToday) } },
-    include: { dish: { include: { supplier: true } } },
-  });
+  // const C = HomepageWrapper({
+  //   children(context) {
+  //     console.log("ere", context);
 
-  const mainDish = menu.filter((x) => x.dish.type == "MAIN");
-  const sideDish = menu.filter((x) => x.dish.type == "SIDE");
-  const extraDish = menu.filter((x) => x.dish.type == "EXTRA");
+  //     return <p>hello</p>;
+  //   },
+  // });
 
   return (
-    <HomepageProvider>
+    <>
       <div className="px-16 py-10">
         <h1 className="text-4xl">Good morning, {session?.user.first_name}!</h1>
         <p className="text-lg">What&apos;s your food mood today?</p>
       </div>
 
-      {mainDish.length > 0 && (
+      {/* <C /> */}
+
+      <HomepageWrapper>
+        {() => <p>hello</p>}
+      </HomepageWrapper>
+
+      {/* {mainDish.length > 0 && (
         <div className="px-16 py-5">
           <h2 className="text-3xl font-bold">Main Dish</h2>
           <p className="text-primary mb-5">with Rice</p>
@@ -63,7 +64,7 @@ export default async function Employee() {
             ))}
           </div>
         </div>
-      )}
-    </HomepageProvider>
+      )} */}
+    </>
   );
 }
