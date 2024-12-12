@@ -19,7 +19,7 @@ export default function DishContainer({ menu: { dish, quantity, _count } }: { me
   return (
     <div
       className={cn(
-        "rounded-lg border border-black overflow-hidden",
+        "rounded-lg border overflow-hidden",
         isOutOfStock && "grayscale cursor-not-allowed"
       )}
     >
@@ -70,9 +70,9 @@ export default function DishContainer({ menu: { dish, quantity, _count } }: { me
         />
 
         <div className="flex items-center justify-between">
-          <p className="text-white text-xs">{quantity} meal/s left</p>
+          <span className="text-white text-xs">{quantity - _count.order} meal/s left</span>
 
-          <p className="self-end text-primary text-xs">Supplier: {dish.supplier.name}</p>
+          <span className="self-end text-primary text-xs">Supplier: {dish.supplier.name}</span>
         </div>
       </div>
     </div>
