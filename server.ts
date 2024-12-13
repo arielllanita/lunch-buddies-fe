@@ -1,7 +1,7 @@
 import next from "next";
 import { createServer } from "http";
 import { Server } from "socket.io";
-import { Order, PrismaClient } from "@prisma/client";
+import { Order, Prisma, PrismaClient } from "@prisma/client";
 import { startOfDay } from "date-fns/startOfDay";
 import { endOfDay } from "date-fns/endOfDay";
 
@@ -26,8 +26,9 @@ app.prepare().then(() => {
       socket.emit("receive_menu_today", menus);
     });
 
-    socket.on("submit_order", async (order: Order[]) => {
-      console.log("order", order);
+    socket.on("submit_order", async (orders: Prisma.OrderCreateManyInput[]) => {
+      console.log("orders", orders);
+      await createOrder(orders);
     });
   });
 
@@ -47,4 +48,8 @@ async function getMenuToday() {
   });
 
   return menus;
+}
+
+async function createOrder(payload: Prisma.OrderCreateManyInput[]) {
+  const order = await prisma.order.createMany({ data: payload });
 }

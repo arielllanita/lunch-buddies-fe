@@ -5,7 +5,7 @@ import { HomepageContext } from "../_context/homepage.context";
 import DishContainer from "./dish_container";
 
 export default function HomepageWrapper() {
-  const { state } = useContext(HomepageContext);
+  const { state, dispatch } = useContext(HomepageContext);
 
   const mainDish = state.menu.filter(({ dish }) => dish.type === "MAIN");
   const sideDish = state.menu.filter(({ dish }) => dish.type === "SIDE");
@@ -19,8 +19,24 @@ export default function HomepageWrapper() {
           <p className="text-primary mb-5">with Rice</p>
 
           <GridWrapper>
-            {mainDish.map((menu, i) => (
-              <DishContainer key={i} menu={menu} />
+            {mainDish.map((menu) => (
+              <DishContainer
+                key={menu.id}
+                menu={menu}
+                onAddToCart={(note) => {
+                  // dispatch({ type: "ADD_TO_CART", payload: { ...menu, orderQuantity: 1, note } });
+                  dispatch({
+                    type: "ADD_TO_CART",
+                    payload: {
+                      dish: menu.dish,
+                      id: menu.id,
+                      quantity: menu.quantity,
+                      orderQuantity: 1,
+                      note,
+                    },
+                  });
+                }}
+              />
             ))}
           </GridWrapper>
         </div>
@@ -32,8 +48,23 @@ export default function HomepageWrapper() {
           <p className="text-primary mb-5">{sideDish.length} meal/s listed</p>
 
           <GridWrapper>
-            {sideDish.map((menu, i) => (
-              <DishContainer key={i} menu={menu} />
+            {sideDish.map((menu) => (
+              <DishContainer
+                key={menu.id}
+                menu={menu}
+                onAddToCart={(note) => {
+                  dispatch({
+                    type: "ADD_TO_CART",
+                    payload: {
+                      dish: menu.dish,
+                      id: menu.id,
+                      quantity: menu.quantity,
+                      orderQuantity: 1,
+                      note,
+                    },
+                  });
+                }}
+              />
             ))}
           </GridWrapper>
         </div>
@@ -45,8 +76,23 @@ export default function HomepageWrapper() {
           <p className="text-primary mb-5">{extraDish.length} meal/s listed</p>
 
           <GridWrapper>
-            {extraDish.map((menu, i) => (
-              <DishContainer key={i} menu={menu} />
+            {extraDish.map((menu) => (
+              <DishContainer
+                key={menu.id}
+                menu={menu}
+                onAddToCart={(note) => {
+                  dispatch({
+                    type: "ADD_TO_CART",
+                    payload: {
+                      dish: menu.dish,
+                      id: menu.id,
+                      quantity: menu.quantity,
+                      orderQuantity: 1,
+                      note,
+                    },
+                  });
+                }}
+              />
             ))}
           </GridWrapper>
         </div>

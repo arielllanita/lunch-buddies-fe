@@ -1,14 +1,32 @@
 "use client";
 
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { sentenceCase } from "change-case";
-import { Plus } from "lucide-react";
-import React from "react";
+import { Minus, Plus } from "lucide-react";
+import React, { useState } from "react";
 import { MenuToday } from "../_context/homepage.reducer";
+import { Dish } from "@prisma/client";
+import { Textarea } from "@/components/ui/textarea";
 
-export default function DishContainer({ menu: { dish, quantity, _count } }: { menu: MenuToday }) {
+export default function DishContainer({
+  menu: { dish, quantity, _count },
+  onAddToCart,
+}: {
+  menu: MenuToday;
+  onAddToCart: (note: string) => void;
+}) {
   // TODO: ADJUST THIS IF USER HAS ALREADY ORDERED
   const isFreeFirstOrder =
     (dish.supplier.isFreeMainDish && dish.type == "MAIN") ||
@@ -40,7 +58,13 @@ export default function DishContainer({ menu: { dish, quantity, _count } }: { me
           ))}
         </div>
 
-        <div className="z-40">{isOutOfStock ? <SoldOutBanner /> : <AddToCartBtn />}</div>
+        <div className="z-40">
+          {isOutOfStock ? (
+            <SoldOutBanner />
+          ) : (
+            <AddToCartBtn onAddToCart={onAddToCart} dish={dish} />
+          )}
+        </div>
       </div>
 
       <div className="bg-black p-3">
@@ -79,13 +103,64 @@ export default function DishContainer({ menu: { dish, quantity, _count } }: { me
   );
 }
 
-function AddToCartBtn({ onAddToCart = () => {} }) {
+function AddToCartBtn({ onAddToCart, dish }: { onAddToCart: (note: string) => void; dish: Dish }) {
+  const [orderNote, setOrderNote] = useState("");
+  const [isNoteCollapse, setIsNoteCollapse] = useState(false);
+
+  const onSubmit = () => onAddToCart(orderNote);
+  const onCollapseNote = () => {
+    setIsNoteCollapse((x) => !x);
+    setOrderNote("");
+  };
+
   return (
-    <div className="w-fit opacity-0 invisible transition-opacity duration-300 ease-in-out group-hover:opacity-100 group-hover:visible">
-      <Button size={"icon"} className="rounded-full" onClick={onAddToCart}>
-        <Plus />
-      </Button>
-    </div>
+    <Dialog>
+      <DialogTrigger asChild>
+        <div className="w-fit opacity-0 invisible transition-opacity duration-300 ease-in-out group-hover:opacity-100 group-hover:visible">
+          <Button size={"icon"} className="rounded-full p-6">
+            <Plus />
+          </Button>
+        </div>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{dish.name}</DialogTitle>
+          <DialogDescription />
+        </DialogHeader>
+
+        <div
+          className="flex items-center gap-1 cursor-pointer"
+          role="button"
+          onClick={onCollapseNote}
+        >
+          {isNoteCollapse ? (
+            <Minus size={18} className="text-muted-foreground" />
+          ) : (
+            <Plus size={18} className="text-muted-foreground" />
+          )}
+          <span className="text-sm text-muted-foreground">Special instructions (optional)</span>
+        </div>
+
+        {isNoteCollapse && (
+          <Textarea
+            onChange={(e) => setOrderNote(e.target.value)}
+            value={orderNote}
+            placeholder="Special requests are subject to the restaurant's approval. Tell us here!"
+          />
+        )}
+
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant={"outline"}>Cancel</Button>
+          </DialogClose>
+          <DialogClose asChild>
+            <Button onClick={onSubmit}>
+              Add to My Cart <Plus />
+            </Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

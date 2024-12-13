@@ -1,5 +1,5 @@
-import ProfileDropDown from "@/components/top_nav/components/profile_dropdown";
-import Timer from "@/components/top_nav/components/timer";
+import ProfileDropDown from "@/components/profile_dropdown";
+import Timer from "@/components/timer";
 import { auth_options } from "@/lib/auth_options";
 import { ShoppingCart } from "lucide-react";
 import { getServerSession } from "next-auth";

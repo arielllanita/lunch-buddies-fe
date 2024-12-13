@@ -1,7 +1,7 @@
 import Footer from "@/components/footer";
-import TopNav from "@/components/top_nav";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { HomepageProvider } from "./_context/homepage.context";
+import { HomepageProvider } from "./homepage/_context/homepage.context";
+import TopNav from "./_components/top_nav";
 
 export default function RootLayout({
   children,

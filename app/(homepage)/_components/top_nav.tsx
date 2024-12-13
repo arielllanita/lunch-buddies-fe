@@ -1,9 +1,9 @@
-import Logo from "./components/logo";
-import Timer from "./components/timer";
-import ProfileDropDown from "./components/profile_dropdown";
-import { getServerSession } from "next-auth";
+import Logo from "@/components/logo";
+import ProfileDropDown from "@/components/profile_dropdown";
+import Timer from "@/components/timer";
 import { auth_options } from "@/lib/auth_options";
-import { ShoppingCart } from "lucide-react";
+import { getServerSession } from "next-auth";
+import UserCartIcon from "./user_cart";
 
 export default async function TopNav() {
   const session = await getServerSession(auth_options);
@@ -15,8 +15,9 @@ export default async function TopNav() {
       <div className="flex gap-x-3">
         <Timer />
         <ProfileDropDown profile={session!} />
-        <ShoppingCart className="text-primary" />
+        <UserCartIcon />
       </div>
     </header>
   );
 }
+
