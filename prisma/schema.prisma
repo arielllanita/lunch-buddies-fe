@@ -80,6 +80,7 @@ model Menu {
 
 model Order {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  dishPrice Float
   quantity  Int
   total     Float
   note      String   @default("")
