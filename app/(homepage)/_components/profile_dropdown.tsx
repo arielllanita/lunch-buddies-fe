@@ -1,6 +1,5 @@
 "use client";
 
-import { getOrders } from "@/actions/order.actions";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -45,10 +44,8 @@ import { Session } from "next-auth";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useContext, useEffect, useState } from "react";
-import { UserOrderType } from "../homepage/_context/homepage.reducer";
+import { useContext, useState } from "react";
 import { HomepageContext } from "../homepage/_context/homepage.context";
-import { Input } from "@/components/ui/input";
 
 export default function ProfileDropDown({ profile: { user } }: { profile: Session }) {
   const { state } = useContext(HomepageContext);
@@ -56,7 +53,6 @@ export default function ProfileDropDown({ profile: { user } }: { profile: Sessio
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const [userOrders, setUserOrders] = useState<UserOrderType>([]);
 
   const isAdmin = user.role === "ADMIN";
   const isInAdminRoutes = pathname.startsWith("/admin");
@@ -65,15 +61,6 @@ export default function ProfileDropDown({ profile: { user } }: { profile: Sessio
   const myOrdersHandler = () => {};
   const changePasswordHandler = () => {};
   const signOutHandler = () => signOut({ callbackUrl: "/" });
-
-  //   useEffect(() => {
-  //     (async () => {
-  //       const orders = await getOrders();
-  //       console.log("orders", orders);
-
-  //       setUserOrders(orders);
-  //     })();
-  //   }, []);
 
   return (
     <Dialog>
