@@ -25,7 +25,7 @@ import { capitalCase } from "change-case";
 import { ChevronRight, ShoppingCart, Trash2 } from "lucide-react";
 import { useContext, useState } from "react";
 import { HomepageContext } from "../homepage/_context/homepage.context";
-import { createOrder } from "@/actions/order.actions";
+import { createOrder, getOrders } from "@/actions/order.actions";
 import { getMenuToday } from "@/actions/menu.actions";
 import { toast } from "sonner";
 
@@ -45,6 +45,10 @@ export default function UserCartIcon() {
     if (status === "success") {
       const updatedMenus = await getMenuToday();
       socket?.emit("fetch_menu_today", updatedMenus);
+
+      const userOrders = await getOrders();
+      dispatch({ type: "FETCH_USER_ORDER", payload: userOrders });
+
       toast.success(msg);
     } else {
       toast.error(msg);
@@ -111,7 +115,9 @@ export default function UserCartIcon() {
                           payload: { ...item, orderQuantity },
                         });
                       }}
-                      max={item.quantity - (state.menu.find((v) => v.id === item.id)?.totalOrder || 0)}
+                      max={
+                        item.quantity - (state.menu.find((v) => v.id === item.id)?.totalOrder || 0)
+                      }
                       min={1}
                     />
                   </TableCell>

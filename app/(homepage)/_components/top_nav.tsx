@@ -1,9 +1,9 @@
 import Logo from "@/components/logo";
-import ProfileDropDown from "@/components/profile_dropdown";
 import Timer from "@/components/timer";
 import { auth_options } from "@/lib/auth_options";
 import { getServerSession } from "next-auth";
 import UserCartIcon from "./user_cart";
+import ProfileDropDown from "./profile_dropdown";
 
 export default async function TopNav() {
   const session = await getServerSession(auth_options);
@@ -20,4 +20,3 @@ export default async function TopNav() {
     </header>
   );
 }
-

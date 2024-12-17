@@ -9,6 +9,20 @@ import { endOfDay } from "date-fns/endOfDay";
 import { startOfDay } from "date-fns/startOfDay";
 import { $Enums } from "@prisma/client";
 
+export async function getOrders() {
+  const session = await getServerSession(auth_options);
+  const userId = session!.user.id as string;
+
+  const today = new Date();
+
+  const orders = await prisma.order.findMany({
+    where: { createdAt: { gte: startOfDay(today), lte: endOfDay(today) }, userId },
+    include: { menu: { include: { dish: true } } },
+  });
+
+  return orders;
+}
+
 type CreateOrder = { menuId: string; orderQuantity: number; note: string }[];
 
 export async function createOrder(
@@ -107,6 +121,4 @@ async function checkUserOrder(userId: string) {
   return orders > 0;
 }
 
-async function checkDishAvailability(payload:CreateOrder) {
-  
-}
+async function checkDishAvailability(payload: CreateOrder) {}

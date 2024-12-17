@@ -1,3 +1,4 @@
+import { getOrders } from "@/actions/order.actions";
 import { Order, Prisma } from "@prisma/client";
 import { sumBy, uniqBy } from "lodash";
 
@@ -14,15 +15,18 @@ type CartType = Pick<MenuToday, "dish" | "quantity" | "id"> & {
   orderQuantity: number;
 };
 
+export type UserOrderType = Awaited<ReturnType<typeof getOrders>>;
+
 export type IHompageAction =
   | { type: "ADD_TO_CART" | "EDIT_CART"; payload: CartType }
   | { type: "REMOVE_TO_CART"; payload: string }
   | { type: "CLEAR_CART" }
-  | { type: "FETCH_MENU_TODAY"; payload: MenuToday[] };
+  | { type: "FETCH_MENU_TODAY"; payload: MenuToday[] }
+  | { type: "FETCH_USER_ORDER"; payload: UserOrderType };
 
 export type IHomepageState = {
   cart: CartType[];
-  orders: Readonly<Order>[];
+  orders: Readonly<UserOrderType>;
   menu: Readonly<MenuToday>[];
   isMainDishInCart: boolean;
   isSideDishInCart: boolean;
@@ -59,6 +63,9 @@ export function reducer(state: IHomepageState, action: IHompageAction): IHomepag
     }
     case "CLEAR_CART": {
       return { ...state, cart: [] };
+    }
+    case "FETCH_USER_ORDER": {
+      return { ...state, orders: action.payload };
     }
 
     default:
