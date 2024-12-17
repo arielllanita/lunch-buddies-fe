@@ -4,6 +4,7 @@ import useSockets from "@/hooks/use-sockets";
 import React, { createContext, useEffect, useReducer } from "react";
 import { type Socket } from "socket.io-client";
 import { IHomepageState, IHompageAction, initState, reducer } from "./homepage.reducer";
+import { getMenuToday } from "@/actions/menu.actions";
 
 export type HomepageContextType = {
   state: IHomepageState;
@@ -21,18 +22,25 @@ export function HomepageProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initState);
   const { socket } = useSockets();
 
+  useEffect(() => {
+    (async () => {
+      const menus = await getMenuToday();
+      dispatch({ type: "FETCH_MENU_TODAY", payload: menus });
+    })();
+  }, []);
+
   // Initialize websocket event listeners
   useEffect(() => {
     if (!socket) return;
 
     socket.on("connect", () => {
       console.log("Connected to websocket server");
-      socket.emit("fetch_menu_today");
     });
 
     socket.on("receive_menu_today", (menus) => {
-      console.log("menus", menus);
-      dispatch({ type: "FETCH_MENU_TODAY", payload: menus });
+      if (menus != null) {
+        dispatch({ type: "FETCH_MENU_TODAY", payload: menus });
+      }
     });
 
     return () => {

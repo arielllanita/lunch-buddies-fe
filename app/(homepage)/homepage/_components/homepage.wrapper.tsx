@@ -12,7 +12,7 @@ export default function HomepageWrapper() {
   const extraDish = state.menu.filter(({ dish }) => dish.type === "EXTRA");
 
   return (
-    <div>
+    <>
       {mainDish.length > 0 && (
         <div className="px-16 py-5">
           <h2 className="text-3xl font-bold">Main Dish</h2>
@@ -24,7 +24,6 @@ export default function HomepageWrapper() {
                 key={menu.id}
                 menu={menu}
                 onAddToCart={(note) => {
-                  // dispatch({ type: "ADD_TO_CART", payload: { ...menu, orderQuantity: 1, note } });
                   dispatch({
                     type: "ADD_TO_CART",
                     payload: {
@@ -97,7 +96,7 @@ export default function HomepageWrapper() {
           </GridWrapper>
         </div>
       )}
-    </div>
+    </>
   );
 }
 

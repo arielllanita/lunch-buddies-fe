@@ -21,7 +21,7 @@ import { Dish } from "@prisma/client";
 import { Textarea } from "@/components/ui/textarea";
 
 export default function DishContainer({
-  menu: { dish, quantity, _count },
+  menu: { dish, quantity, _count, totalOrder },
   onAddToCart,
 }: {
   menu: MenuToday;
@@ -32,7 +32,7 @@ export default function DishContainer({
     (dish.supplier.isFreeMainDish && dish.type == "MAIN") ||
     (dish.supplier.isFreeSideDish && dish.type == "SIDE");
 
-  const isOutOfStock = _count.order === quantity;
+  const isOutOfStock = totalOrder === quantity;
 
   return (
     <div
@@ -87,14 +87,10 @@ export default function DishContainer({
           </div>
         </div>
 
-        <Progress
-          value={quantity - _count.order}
-          max={quantity}
-          className="h-2 w-[70%] mt-2 mb-1"
-        />
+        <Progress value={quantity - totalOrder} max={quantity} className="h-2 w-[70%] mt-2 mb-1" />
 
         <div className="flex items-center justify-between">
-          <span className="text-white text-xs">{quantity - _count.order} meal/s left</span>
+          <span className="text-white text-xs">{quantity - totalOrder} meal/s left</span>
 
           <span className="self-end text-primary text-xs">Supplier: {dish.supplier.name}</span>
         </div>

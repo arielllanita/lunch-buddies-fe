@@ -83,6 +83,7 @@ model Order {
   dishPrice Float
   quantity  Int
   total     Float
+  discount  Float
   note      String   @default("")
   createdAt DateTime @default(now())
   menu      Menu     @relation(fields: [menuId], references: [id], onDelete: Cascade)

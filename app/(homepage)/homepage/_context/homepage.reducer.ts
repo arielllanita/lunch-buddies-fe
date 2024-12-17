@@ -1,20 +1,28 @@
 import { Order, Prisma } from "@prisma/client";
-import { uniqBy } from "lodash";
+import { sumBy, uniqBy } from "lodash";
 
 export type MenuToday = Prisma.MenuGetPayload<{
-  include: { _count: { select: { order: true } }; dish: { include: { supplier: true } } };
-}>;
+  include: {
+    _count: { select: { order: true } };
+    dish: { include: { supplier: true } };
+    order: true;
+  };
+}> & { totalOrder: number };
 
-type CartType = Pick<MenuToday, "dish" | "quantity" | "id"> & { note: string; orderQuantity: number };
+type CartType = Pick<MenuToday, "dish" | "quantity" | "id"> & {
+  note: string;
+  orderQuantity: number;
+};
 
 export type IHompageAction =
   | { type: "ADD_TO_CART" | "EDIT_CART"; payload: CartType }
   | { type: "REMOVE_TO_CART"; payload: string }
+  | { type: "CLEAR_CART" }
   | { type: "FETCH_MENU_TODAY"; payload: MenuToday[] };
 
 export type IHomepageState = {
   cart: CartType[];
-  orders: Order[];
+  orders: Readonly<Order>[];
   menu: Readonly<MenuToday>[];
   isMainDishInCart: boolean;
   isSideDishInCart: boolean;
@@ -40,11 +48,17 @@ export function reducer(state: IHomepageState, action: IHompageAction): IHomepag
     }
     case "EDIT_CART": {
       const { id } = action.payload;
-      const cart = state.cart.map((c) => (c.id === id ? action.payload : c));
+      const cart = state.cart.map((menu) => {
+        return menu.id === id ? action.payload : menu;
+      });
+
       return { ...state, cart };
     }
     case "FETCH_MENU_TODAY": {
       return { ...state, menu: action.payload };
+    }
+    case "CLEAR_CART": {
+      return { ...state, cart: [] };
     }
 
     default:

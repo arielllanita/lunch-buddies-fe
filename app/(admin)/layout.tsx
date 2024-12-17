@@ -15,8 +15,6 @@ export default function RootLayout({
         <header className="bg-black text-white flex items-center justify-end h-16 shrink-0 gap-2">
           <TopNav />
         </header>
-
-        {/* ScrollArea height minus to header height (h-16/64px/4rem) */}
         <ScrollArea className="bg-slate-100 w-full h-[calc(100vh-4rem)]">{children}</ScrollArea>
       </SidebarInset>
     </SidebarProvider>
